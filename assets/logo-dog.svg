@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <clipPath id="r"><rect width="200" height="200" rx="46"/></clipPath>
+  <rect width="200" height="200" rx="46" fill="#fff"/>
+  <g clip-path="url(#r)">
+  <g transform="translate(100 112) scale(1.16) translate(-100 -112)">
+  <!-- ears -->
+  <path d="M74 100C57 78 56 34 68 16c9-12 19-6 20 14 1 26-1 52-6 72z" fill="#d3d1cc"/>
+  <path d="M118 78c4-20 18-32 30-26 12 6 20 22 25 36 3 8-5 11-12 7-11-6-24-11-34-8z" fill="#d3d1cc"/>
+  <!-- head -->
+  <path d="M100 66c-27 0-41 18-41 46v52c0 22 17 36 41 36s41-14 41-36v-52c0-28-14-46-41-46z" fill="#f2f1ee"/>
+  <!-- brows -->
+  <ellipse cx="82" cy="94" rx="7" ry="4.5" transform="rotate(-25 82 94)" fill="#dddbd6"/>
+  <ellipse cx="116" cy="94" rx="7" ry="4.5" transform="rotate(25 116 94)" fill="#dddbd6"/>
+  <!-- eye patch -->
+  <path d="M104 104c4-9 18-11 30-6l14 3 2 46c-10 2-16 1-22 4-9 4-18-1-22-12-5-11-6-26-2-35z" fill="#d3d1cc"/>
+  <!-- eyes -->
+  <ellipse cx="85" cy="119" rx="5.5" ry="8.5" fill="#3a3335"/>
+  <ellipse cx="117" cy="119" rx="5.5" ry="8.5" fill="#3a3335"/>
+  <!-- nose / mouth -->
+  <path d="M71 151c10-9 49-9 59 0-5 15-18 26-29 26s-24-11-30-26z" fill="#3a3335"/>
+  <!-- collar -->
+  <path d="M61 182c22 11 56 11 78 0l3 18H58z" fill="#5bb83c"/>
+  <path d="M94 186h12c0 6-3 9-6 9s-6-3-6-9z" fill="#e2373b"/>
+  </g>
+  </g>
+</svg>
