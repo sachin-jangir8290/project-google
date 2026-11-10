@@ -85,3 +85,50 @@ footer{background:var(--card);border-top:1px solid var(--bd);padding:50px 0 24px
 #msg{font-weight:500}#out{text-align:left;max-width:900px;margin:16px auto;white-space:pre-wrap;font-family:ui-monospace,monospace;font-size:13px}
 #out .add{background:#16a34a33}#out .del{background:#dc262633;text-decoration:line-through}.small{font-size:12px}
 @media(max-width:560px){.grid{grid-template-columns:1fr 1fr;gap:10px}.card{padding:14px}.card .ic{width:42px;height:42px;font-size:21px}.card h3{font-size:15px;margin:10px 0 4px}.card p{font-size:12px}}
+/* ---------- icons & animation ---------- */
+.i{width:1em;height:1em;flex:none;vertical-align:-.15em}
+.card .ic,.tic{color:var(--c)}.card .ic .i{font-size:26px}.tic{color:var(--c,var(--acc))}.tic .i{font-size:32px}
+.search>.i{color:#7b8aa0;font-size:18px}.search button{display:grid;place-items:center}.search button .i{font-size:18px}
+.fhead{display:flex;align-items:center;gap:8px}.fic{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:#e0f2fe;color:var(--acc)}
+.fcard li{display:flex;align-items:center;gap:8px}.fcard li .i{color:var(--acc);font-size:15px}
+.ghostcard .gi{display:block;font-size:44px;margin-top:16px;color:#9ec9e8}.ghostcard.r .gi{margin-left:auto}
+.trust .big{color:var(--acc);font-size:26px}.trust .stars{color:#f59e0b;font-size:18px;display:flex;gap:2px}.stars .i{fill:currentColor}
+.chip{position:absolute;display:grid;place-items:center;width:52px;height:52px;border-radius:14px;background:#fff;color:var(--acc);box-shadow:0 10px 24px #0b4a7a26;font-size:24px;animation:bob 4s ease-in-out infinite}
+.chip.f2{animation-delay:-1.3s;color:#f59e0b}.chip.f3{animation-delay:-2.6s;color:#22c55e}
+.illu{background:none}.hill{width:100%;height:100%}
+.ill{width:100%;height:100%}
+/* clouds */
+.sky{position:relative;overflow:hidden}.sky>*:not(.clouds){position:relative;z-index:1}.top{position:sticky!important;z-index:10!important}
+.clouds{position:absolute;inset:0;pointer-events:none;z-index:0}
+.cl{position:absolute;opacity:.85;animation:drift linear infinite}.cl svg{width:100%;display:block;filter:blur(1px)}
+.k1{width:220px;top:14%;animation-duration:60s;animation-delay:-10s}.k2{width:320px;top:36%;animation-duration:85s;animation-delay:-50s;opacity:.7}
+.k3{width:160px;top:6%;animation-duration:50s;animation-delay:-30s;opacity:.6}.k4{width:380px;top:58%;animation-duration:100s;animation-delay:-20s}.k5{width:200px;top:46%;animation-duration:70s;animation-delay:-62s;opacity:.75}
+@keyframes drift{from{transform:translateX(-420px)}to{transform:translateX(calc(100vw + 40px))}}
+/* hero entrance */
+.hero h1,.hero>p,.search,.stack,.rec,.trust{animation:up .8s cubic-bezier(.2,.7,.2,1) both}
+.hero>p{animation-delay:.1s}.search{animation-delay:.2s}.stack{animation-delay:.35s}.rec,.trust{animation-delay:.5s}
+@keyframes up{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+.fcard{animation:bob 5s ease-in-out infinite}.ghostcard.l{animation:bobl 6s ease-in-out infinite}.ghostcard.r{animation:bobr 6s ease-in-out -3s infinite}
+@keyframes bob{50%{transform:translateY(-10px)}}@keyframes bobl{0%,100%{transform:rotate(-12deg)}50%{transform:rotate(-10deg) translateY(-8px)}}@keyframes bobr{0%,100%{transform:rotate(12deg)}50%{transform:rotate(10deg) translateY(-8px)}}
+.search button{animation:pulse 2.4s infinite}@keyframes pulse{0%{box-shadow:0 0 0 0 #0ea5e980}70%{box-shadow:0 0 0 12px #0ea5e900}100%{box-shadow:0 0 0 0 #0ea5e900}}
+/* buttons shine */
+.blue,.btn,.dark{position:relative;overflow:hidden;transition:transform .15s,box-shadow .15s}.blue:hover,.btn:hover,.dark:hover{transform:translateY(-2px)}
+.blue::after,.btn::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,#fff6 50%,transparent 70%);transform:translateX(-100%)}
+.blue:hover::after,.btn:hover::after{transition:transform .7s;transform:translateX(100%)}
+/* cards */
+.card{animation:up .5s both;animation-delay:var(--d,0ms)}.card .ic{transition:transform .25s}
+.card:hover .ic{transform:scale(1.12) rotate(-6deg)}
+/* scroll reveal */
+[data-r]{opacity:0;transform:translateY(30px);transition:opacity .8s,transform .8s cubic-bezier(.2,.7,.2,1)}[data-r].in{opacity:1;transform:none}
+.tri>.t{transition:transform .25s,box-shadow .25s}.tri>.t:hover{transform:translateY(-6px);box-shadow:0 18px 36px #0b4a7a1a}
+/* illustrations */
+.draw{stroke-dasharray:60;stroke-dashoffset:60;animation:dash 2.5s ease-in-out infinite}@keyframes dash{40%,80%{stroke-dashoffset:0}100%{stroke-dashoffset:-60}}
+.spin{transform-origin:60px 50px;animation:sq 4s linear infinite}@keyframes sq{0%{transform:scaleX(1)}50%{transform:scaleX(-1)}100%{transform:scaleX(1)}}
+.ping{transform-origin:88px 22px;animation:ping 1.8s infinite}@keyframes ping{0%{transform:scale(.6);opacity:1}100%{transform:scale(1.8);opacity:0}}
+.doc1{animation:bob 5s ease-in-out infinite}.doc2{transform-origin:275px 150px;animation:tilt 6s ease-in-out infinite}@keyframes tilt{50%{transform:rotate(4deg) translateY(-6px)}}
+.ln{transform-box:fill-box;transform-origin:left;animation:grow 3s ease-in-out infinite}.l2{animation-delay:.2s}.l3{animation-delay:.4s}
+@keyframes grow{0%{transform:scaleX(0)}40%,100%{transform:scaleX(1)}}
+.bar{transform-box:fill-box;transform-origin:left;animation:load 3s ease-in-out infinite}@keyframes load{0%{transform:scaleX(0)}70%,100%{transform:scaleX(1)}}
+.badge{transform-box:fill-box;transform-origin:center;animation:popb 3s ease-in-out infinite}@keyframes popb{0%,65%{transform:scale(0)}75%{transform:scale(1.15)}85%,100%{transform:scale(1)}}
+.drop b{transition:transform .2s}.drop:hover b{transform:scale(1.04)}#tool>*{animation:up .5s both}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}[data-r]{opacity:1;transform:none}}

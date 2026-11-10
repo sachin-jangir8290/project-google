@@ -7,7 +7,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 </head>
 <body>
-<div class="sky">
+<div class="sky"><div class="clouds" aria-hidden="true"><span class="cl k1"><svg viewBox="0 0 200 80"><path d="M40 70a26 26 0 0 1 2-52 34 34 0 0 1 64-6 28 28 0 0 1 52 14 22 22 0 0 1 2 44z" fill="#fff"/></svg></span><span class="cl k2"><svg viewBox="0 0 200 80"><path d="M40 70a26 26 0 0 1 2-52 34 34 0 0 1 64-6 28 28 0 0 1 52 14 22 22 0 0 1 2 44z" fill="#fff"/></svg></span><span class="cl k3"><svg viewBox="0 0 200 80"><path d="M40 70a26 26 0 0 1 2-52 34 34 0 0 1 64-6 28 28 0 0 1 52 14 22 22 0 0 1 2 44z" fill="#fff"/></svg></span><span class="cl k4"><svg viewBox="0 0 200 80"><path d="M40 70a26 26 0 0 1 2-52 34 34 0 0 1 64-6 28 28 0 0 1 52 14 22 22 0 0 1 2 44z" fill="#fff"/></svg></span><span class="cl k5"><svg viewBox="0 0 200 80"><path d="M40 70a26 26 0 0 1 2-52 34 34 0 0 1 64-6 28 28 0 0 1 52 14 22 22 0 0 1 2 44z" fill="#fff"/></svg></span></div>
 <header class="top"><div class="nav">
  <a href="#" class="logo" onclick="home();return false"><span class="mark">O</span><span>Openwise</span></a>
  <nav class="links"><a href="#" class="on" onclick="home();return false">Home</a><a href="#" onclick="goCat('Organize');return false">Organize</a><a href="#" onclick="goCat('Convert to PDF');return false">Convert</a><a href="#" onclick="goCat('Edit');return false">Edit</a><a href="#" onclick="goCat('Security');return false">Security</a></nav>
@@ -18,31 +18,31 @@
  <section class="hero">
   <h1>Every PDF Tool<br>For Your Daily Work</h1>
   <p>Merge, split, compress, convert, edit, sign and protect PDFs in seconds — free, private and right inside your browser.</p>
-  <form class="search" onsubmit="event.preventDefault();goCat('All')"><span>🔍</span><input id="q" placeholder="Search a tool… e.g. merge, word, sign" oninput="filterTools(this.value)" autocomplete="off"><button aria-label="Search">→</button></form>
+  <form class="search" onsubmit="event.preventDefault();goCat('All')"><i data-i="search"></i><input id="q" placeholder="Search a tool… e.g. merge, word, sign" oninput="filterTools(this.value)" autocomplete="off"><button aria-label="Search"><i data-i="arrow"></i></button></form>
   <div class="stack">
-   <div class="ghostcard l"><b>Compress PDF</b><big>-70%</big></div><div class="ghostcard r"><b>Sign PDF</b><big>✍️</big></div>
-   <div class="fcard"><small>Most used tool</small><h3>Merge PDF</h3><div class="price"><b>₹0</b><span>/forever</span></div><p class="save">No sign-up · no watermark</p>
-    <ul><li>📄 Unlimited files</li><li>↕️ Re-order by drag</li><li>⚡ Instant processing</li><li>🔒 Files stay on device</li><li>📱 Works on mobile</li></ul>
+   <div class="ghostcard l"><b>Compress PDF</b><i data-i="compress" class="gi"></i><big>-70%</big></div><div class="ghostcard r"><b>Sign PDF</b><i data-i="sign" class="gi"></i></div>
+   <div class="fcard"><div class="fhead"><span class="fic"><i data-i="merge"></i></span><small>Most used tool</small></div><h3>Merge PDF</h3><div class="price"><b>₹0</b><span>/forever</span></div><p class="save">No sign-up · no watermark</p>
+    <ul><li><i data-i="files"></i>Unlimited files</li><li><i data-i="move"></i>Re-order by drag</li><li><i data-i="zap"></i>Instant processing</li><li><i data-i="protect"></i>Files stay on device</li><li><i data-i="phone"></i>Works on mobile</li></ul>
     <a href="#merge" class="blue" onclick="openTool('merge');return false">Merge Now</a></div>
   </div>
   <p class="rec">Recommended <span>for everyone</span></p>
   <p class="muted narrow">Built for students, offices and businesses that want fast PDF work without uploading private documents.</p>
-  <div class="trust"><div><span class="big">🛡️</span><b>100% Private — files<br>never leave your device</b></div><div><span class="big">⭐⭐⭐⭐⭐</span><b>30 tools, free forever<br>for everyone</b></div></div>
+  <div class="trust"><div><span class="big"><i data-i="shield"></i></span><b>100% Private — files<br>never leave your device</b></div><div><span class="big stars"><i data-i="star"></i><i data-i="star"></i><i data-i="star"></i><i data-i="star"></i><i data-i="star"></i></span><b>30 tools, free forever<br>for everyone</b></div></div>
  </section>
 </div>
 
  <section class="wrap">
-  <h2 class="lefth">Powerful PDF Tools<br>for a Competitive Edge.</h2>
-  <div class="tri">
+  <h2 class="lefth" data-r>Powerful PDF Tools<br>for a Competitive Edge.</h2>
+  <div class="tri" data-r>
    <div class="t g"><div class="art"><small>Monthly fee</small><b>₹0</b><em>✓ All inclusive</em></div><h3>Simple & Easy to Use</h3><p>Pick a tool, drop your file, download. No account, no learning curve.</p></div>
-   <div class="t b"><div class="art"><span>🛡️</span></div><h3>Private by Design</h3><p>Every file is processed in your own browser. Nothing is uploaded to any server.</p></div>
-   <div class="t v"><div class="art"><span>🌐</span></div><h3>30+ Tools, Any Device</h3><p>Phone, tablet or laptop — convert, edit and secure PDFs anywhere.</p></div>
+   <div class="t b"><div class="art"><svg class="ill" viewBox="0 0 120 100"><path class="shp" d="M60 92s34-15 34-42V22L60 10 26 22v28c0 27 34 42 34 42z" fill="#e0f2fe" stroke="#0ea5e9" stroke-width="3"/><path class="draw" d="m45 50 10 10 20-22" fill="none" stroke="#0ea5e9" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg></div><h3>Private by Design</h3><p>Every file is processed in your own browser. Nothing is uploaded to any server.</p></div>
+   <div class="t v"><div class="art"><svg class="ill" viewBox="0 0 120 100"><circle cx="60" cy="50" r="36" fill="#ede9fe" stroke="#8b5cf6" stroke-width="3"/><g class="spin"><ellipse cx="60" cy="50" rx="14" ry="36" fill="none" stroke="#8b5cf6" stroke-width="2.5"/></g><path d="M24 50h72M30 32h60M30 68h60" stroke="#8b5cf6" stroke-width="2" fill="none"/><circle class="ping" cx="88" cy="22" r="6" fill="#0ea5e9"/></svg></div><h3>30+ Tools, Any Device</h3><p>Phone, tablet or laptop — convert, edit and secure PDFs anywhere.</p></div>
   </div>
  </section>
 
  <section class="wrap" id="tools">
-  <p class="eyebrow">— All Tools —</p>
-  <h2 class="sec">PDF tools for everyone</h2>
+  <p class="eyebrow" data-r>— All Tools —</p>
+  <h2 class="sec" data-r>PDF tools for everyone</h2>
   <div id="tabs"></div>
   <div class="grid" id="grid"></div>
   <p id="none" class="muted" hidden>No tool found. Try another word.</p>
@@ -53,11 +53,19 @@
    <details open><summary>1. Choose your tool</summary><p>Pick from 30 tools to organize, convert, edit or secure your PDF.</p></details>
    <details><summary>2. Add your files</summary><p>Drag and drop or tap to select. Your files stay on your device the whole time.</p></details>
    <details><summary>3. Download the result</summary><p>The finished file downloads instantly — no queue, no email, no watermark.</p></details></div>
-  <div class="illu"><div class="doc"><i></i><i></i><i></i><i class="s"></i></div><span class="f1">📄</span><span class="f2">✅</span><span class="f3">⚡</span></div>
+  <div class="illu"><svg viewBox="0 0 400 320" class="hill">
+<defs><linearGradient id="gb" x1="0" x2="1"><stop offset="0" stop-color="#38bdf8"/><stop offset="1" stop-color="#0ea5e9"/></linearGradient></defs>
+<circle cx="200" cy="160" r="130" fill="#e0f2fe" opacity=".7"/><circle cx="200" cy="160" r="90" fill="#bae6fd" opacity=".5"/>
+<g class="doc2"><rect x="215" y="70" width="120" height="155" rx="12" fill="#fff" stroke="#cfe3f5"/><rect x="232" y="95" width="80" height="8" rx="4" fill="#e0ecf8"/><rect x="232" y="113" width="64" height="8" rx="4" fill="#e0ecf8"/><rect x="232" y="131" width="76" height="8" rx="4" fill="#e0ecf8"/></g>
+<g class="doc1"><rect x="85" y="60" width="140" height="185" rx="14" fill="#fff" stroke="#cfe3f5"/><path d="M99 60h112a14 14 0 0 1 14 14v26H85V74a14 14 0 0 1 14-14z" fill="url(#gb)"/><text x="105" y="87" font-size="16" font-weight="700" fill="#fff" font-family="Outfit,sans-serif">PDF</text>
+<rect class="ln l1" x="105" y="120" width="100" height="9" rx="4.5" fill="#e0ecf8"/><rect class="ln l2" x="105" y="140" width="80" height="9" rx="4.5" fill="#e0ecf8"/><rect class="ln l3" x="105" y="160" width="92" height="9" rx="4.5" fill="#e0ecf8"/>
+<rect x="105" y="190" width="100" height="12" rx="6" fill="#e0f2fe"/><rect class="bar" x="105" y="190" width="100" height="12" rx="6" fill="url(#gb)"/></g>
+<g class="badge"><circle cx="300" cy="235" r="26" fill="#22c55e"/><path d="m288 235 8 8 16-16" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></g>
+</svg><span class="chip f1"><i data-i="files"></i></span><span class="chip f2"><i data-i="zap"></i></span><span class="chip f3"><i data-i="shield"></i></span></div>
  </section>
 
- <section class="cloudband"><div class="wrap">
-  <p class="eyebrow">— Get started —</p><h2>Start Working on Your PDFs — Free!</h2>
+ <section class="cloudband" data-r><div class="wrap">
+  <p class="eyebrow" data-r>— Get started —</p><h2>Start Working on Your PDFs — Free!</h2>
   <p class="muted narrow">No installation, no sign-up. Open a tool and get your work done in seconds.</p>
   <div class="cta"><a href="#merge" class="blue" onclick="openTool('merge');return false">Merge PDF</a><a href="#compress" class="soft" onclick="openTool('compress');return false">Compress PDF</a></div>
  </div></section>
@@ -81,6 +89,7 @@
  <div><h4>Convert</h4><a href="#pdf2word" onclick="openTool('pdf2word')">PDF to Word</a><a href="#jpg2pdf" onclick="openTool('jpg2pdf')">JPG to PDF</a><a href="#pdf2jpg" onclick="openTool('pdf2jpg')">PDF to JPG</a></div>
  <div><h4>Edit & Secure</h4><a href="#sign" onclick="openTool('sign')">Sign PDF</a><a href="#edit" onclick="openTool('edit')">Edit PDF</a><a href="#protect" onclick="openTool('protect')">Protect PDF</a></div>
 </div><p class="copy">© 2026 Openwise · All processing happens locally in your browser.</p></footer>
+<script src="assets/icons.js"></script>
 <script src="assets/app.js"></script>
 </body>
 </html>

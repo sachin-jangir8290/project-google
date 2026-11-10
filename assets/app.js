@@ -161,11 +161,11 @@ const TOOLS={
 // ---------- UI ----------
 let cur,files=[],marks=[],pvDoc=null,pvVp=null,cat='All';
 function grid(){$('tabs').innerHTML=CATS.map(c=>`<button class="${c===cat?'on':''}" onclick="cat='${c}';grid()">${c}</button>`).join('');
- $('grid').innerHTML=Object.entries(TOOLS).filter(([,t])=>cat==='All'||t.cat===cat).map(([k,t])=>`<a href="#${k}" class="card c${CATS.indexOf(t.cat)}" onclick="openTool('${k}');return false"><div class="ic">${t.ic}</div><h3>${t.name}</h3><p>${t.desc}</p></a>`).join('')}
+ $('grid').innerHTML=Object.entries(TOOLS).filter(([,t])=>cat==='All'||t.cat===cat).map(([k,t],i)=>`<a href="#${k}" class="card c${CATS.indexOf(t.cat)}" style="--d:${i*30}ms" onclick="openTool('${k}');return false"><div class="ic">${svg(k)}</div><h3>${t.name}</h3><p>${t.desc}</p></a>`).join('')}
 function filterTools(q){q=q.toLowerCase().trim();cat='All';grid();let n=0;document.querySelectorAll('#grid .card').forEach(c=>{const m=!q||c.textContent.toLowerCase().includes(q);c.hidden=!m;n+=m});$('none').hidden=!!n}
 function goCat(c){home();cat=c;grid();$('tools').scrollIntoView({behavior:'smooth'})}
 function home(){$('home').hidden=false;$('tool').hidden=true;window.scrollTo(0,0);history.replaceState(null,'',location.pathname)}
-function openTool(k){cur=TOOLS[k];files=[];marks=[];pvDoc=null;$('home').hidden=true;$('tool').hidden=false;$('t-title').textContent=cur.name;$('t-ic').className='tic c'+CATS.indexOf(cur.cat);$('t-ic').textContent=cur.ic;$('t-desc').textContent=cur.desc;
+function openTool(k){cur=TOOLS[k];files=[];marks=[];pvDoc=null;$('home').hidden=true;$('tool').hidden=false;$('t-title').textContent=cur.name;$('t-ic').className='tic c'+CATS.indexOf(cur.cat);$('t-ic').innerHTML=svg(k);$('t-desc').textContent=cur.desc;
  const fi=$('file');fi.accept=cur.accept;fi.multiple=!!cur.multi;cur.capture?fi.setAttribute('capture','environment'):fi.removeAttribute('capture');
  $('drop').querySelector('b').textContent=cur.capture?'Take photo / select images':cur.multi?'Select files':'Select file';
  $('opts').innerHTML=cur.opts||'';$('out').innerHTML='';$('pvw').hidden=true;msg('');render2();location.hash=k;window.scrollTo(0,0);
@@ -192,4 +192,7 @@ function trimSig(s){if(!sigDirty)return null;const d=s.getContext('2d').getImage
 $('file').onchange=e=>{add(e.target.files);e.target.value=''};
 const dr=$('drop');dr.ondragover=e=>{e.preventDefault();dr.classList.add('over')};dr.ondragleave=()=>dr.classList.remove('over');dr.ondrop=e=>{e.preventDefault();dr.classList.remove('over');add(e.dataTransfer.files)};
 $('run').onclick=async()=>{$('run').disabled=true;msg('Processing…');try{await cur.run(files);if($('msg').textContent.startsWith('Processing'))msg('✅ Done! Your download has started.')}catch(e){console.error(e);msg('❌ '+e.message)}$('run').disabled=false};
+document.querySelectorAll('i[data-i]').forEach(e=>e.outerHTML=svg(e.dataset.i,e.className));
+const io='IntersectionObserver' in window?new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12}):null;
+document.querySelectorAll('[data-r]').forEach(e=>io?io.observe(e):e.classList.add('in'));
 grid();if(TOOLS[location.hash.slice(1)])openTool(location.hash.slice(1));
