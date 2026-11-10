@@ -162,6 +162,7 @@ const TOOLS={
 let cur,files=[],marks=[],pvDoc=null,pvVp=null,cat='All';
 function grid(){$('tabs').innerHTML=CATS.map(c=>`<button class="${c===cat?'on':''}" onclick="cat='${c}';grid()">${c}</button>`).join('');
  $('grid').innerHTML=Object.entries(TOOLS).filter(([,t])=>cat==='All'||t.cat===cat).map(([k,t])=>`<a href="#${k}" class="card c${CATS.indexOf(t.cat)}" onclick="openTool('${k}');return false"><div class="ic">${t.ic}</div><h3>${t.name}</h3><p>${t.desc}</p></a>`).join('')}
+function filterTools(q){q=q.toLowerCase().trim();cat='All';grid();let n=0;document.querySelectorAll('#grid .card').forEach(c=>{const m=!q||c.textContent.toLowerCase().includes(q);c.hidden=!m;n+=m});$('none').hidden=!!n}
 function goCat(c){home();cat=c;grid();$('tools').scrollIntoView({behavior:'smooth'})}
 function home(){$('home').hidden=false;$('tool').hidden=true;window.scrollTo(0,0);history.replaceState(null,'',location.pathname)}
 function openTool(k){cur=TOOLS[k];files=[];marks=[];pvDoc=null;$('home').hidden=true;$('tool').hidden=false;$('t-title').textContent=cur.name;$('t-ic').className='tic c'+CATS.indexOf(cur.cat);$('t-ic').textContent=cur.ic;$('t-desc').textContent=cur.desc;

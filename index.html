@@ -7,43 +7,60 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 </head>
 <body>
-<header class="top"><div class="wrap nav">
- <a href="#" class="logo" onclick="home();return false"><span class="mark">O</span><span>Open<b>wise</b></span></a>
- <nav class="links"><a href="#" onclick="goCat('Organize');return false">Organize</a><a href="#" onclick="goCat('Convert to PDF');return false">Convert</a><a href="#" onclick="goCat('Edit');return false">Edit</a><a href="#" onclick="goCat('Security');return false">Security</a></nav>
- <a href="#tools" class="btn sm" onclick="goCat('All');return false">All tools</a>
+<div class="sky">
+<header class="top"><div class="nav">
+ <a href="#" class="logo" onclick="home();return false"><span class="mark">O</span><span>Openwise</span></a>
+ <nav class="links"><a href="#" class="on" onclick="home();return false">Home</a><a href="#" onclick="goCat('Organize');return false">Organize</a><a href="#" onclick="goCat('Convert to PDF');return false">Convert</a><a href="#" onclick="goCat('Edit');return false">Edit</a><a href="#" onclick="goCat('Security');return false">Security</a></nav>
+ <a href="#" class="dark" onclick="goCat('All');return false">Get Started</a>
 </div></header>
 
 <main id="home">
- <section class="hero"><div class="wrap">
-  <span class="pill">🔒 100% private · runs in your browser</span>
-  <h1>Every PDF tool you need,<br><em>free and in one place</em></h1>
-  <p>Merge, split, compress, convert, edit, sign and protect PDFs in seconds. No sign-up, no uploads, no watermarks.</p>
-  <div class="cta"><a href="#" class="btn lg" onclick="goCat('All');return false">Explore all tools</a><a href="#" class="btn lg ghost" onclick="openTool('merge');return false">Merge PDF →</a></div>
-  <div class="stats"><div><b>30</b><span>PDF tools</span></div><div><b>0</b><span>files uploaded</span></div><div><b>₹0</b><span>forever free</span></div></div>
- </div></section>
-
- <section class="wrap" id="tools">
-  <h2 class="sec">Pick a tool</h2>
-  <div id="tabs"></div>
-  <div class="grid" id="grid"></div>
+ <section class="hero">
+  <h1>Every PDF Tool<br>For Your Daily Work</h1>
+  <p>Merge, split, compress, convert, edit, sign and protect PDFs in seconds — free, private and right inside your browser.</p>
+  <form class="search" onsubmit="event.preventDefault();goCat('All')"><span>🔍</span><input id="q" placeholder="Search a tool… e.g. merge, word, sign" oninput="filterTools(this.value)" autocomplete="off"><button aria-label="Search">→</button></form>
+  <div class="stack">
+   <div class="ghostcard l"><b>Compress PDF</b><big>-70%</big></div><div class="ghostcard r"><b>Sign PDF</b><big>✍️</big></div>
+   <div class="fcard"><small>Most used tool</small><h3>Merge PDF</h3><div class="price"><b>₹0</b><span>/forever</span></div><p class="save">No sign-up · no watermark</p>
+    <ul><li>📄 Unlimited files</li><li>↕️ Re-order by drag</li><li>⚡ Instant processing</li><li>🔒 Files stay on device</li><li>📱 Works on mobile</li></ul>
+    <a href="#merge" class="blue" onclick="openTool('merge');return false">Merge Now</a></div>
+  </div>
+  <p class="rec">Recommended <span>for everyone</span></p>
+  <p class="muted narrow">Built for students, offices and businesses that want fast PDF work without uploading private documents.</p>
+  <div class="trust"><div><span class="big">🛡️</span><b>100% Private — files<br>never leave your device</b></div><div><span class="big">⭐⭐⭐⭐⭐</span><b>30 tools, free forever<br>for everyone</b></div></div>
  </section>
-
- <section class="band"><div class="wrap">
-  <h2 class="sec">How it works</h2>
-  <div class="steps"><div><i>1</i><h3>Choose a tool</h3><p>Pick from 30 tools for organizing, converting, editing and securing PDFs.</p></div>
-  <div><i>2</i><h3>Add your files</h3><p>Drag and drop or tap to select. Files stay on your device the whole time.</p></div>
-  <div><i>3</i><h3>Download</h3><p>Your result downloads instantly — no waiting in a queue, no email needed.</p></div></div>
- </div></section>
+</div>
 
  <section class="wrap">
-  <h2 class="sec">Why Openwise?</h2>
-  <div class="feats">
-   <div><span>🛡️</span><h3>Private by design</h3><p>Everything happens inside your browser. Your documents never touch a server.</p></div>
-   <div><span>⚡</span><h3>Fast</h3><p>No upload or download wait. Even large files are processed right away.</p></div>
-   <div><span>📱</span><h3>Works everywhere</h3><p>Phone, tablet or laptop — any modern browser, no app install.</p></div>
-   <div><span>🎁</span><h3>Free, no limits</h3><p>No account, no daily limit, no watermark on your files.</p></div>
+  <h2 class="lefth">Powerful PDF Tools<br>for a Competitive Edge.</h2>
+  <div class="tri">
+   <div class="t g"><div class="art"><small>Monthly fee</small><b>₹0</b><em>✓ All inclusive</em></div><h3>Simple & Easy to Use</h3><p>Pick a tool, drop your file, download. No account, no learning curve.</p></div>
+   <div class="t b"><div class="art"><span>🛡️</span></div><h3>Private by Design</h3><p>Every file is processed in your own browser. Nothing is uploaded to any server.</p></div>
+   <div class="t v"><div class="art"><span>🌐</span></div><h3>30+ Tools, Any Device</h3><p>Phone, tablet or laptop — convert, edit and secure PDFs anywhere.</p></div>
   </div>
  </section>
+
+ <section class="wrap" id="tools">
+  <p class="eyebrow">— All Tools —</p>
+  <h2 class="sec">PDF tools for everyone</h2>
+  <div id="tabs"></div>
+  <div class="grid" id="grid"></div>
+  <p id="none" class="muted" hidden>No tool found. Try another word.</p>
+ </section>
+
+ <section class="wrap how">
+  <div><p class="eyebrow l">— How it works —</p><h2>Finish Your PDF Work in No Time — Simple & Fast!</h2>
+   <details open><summary>1. Choose your tool</summary><p>Pick from 30 tools to organize, convert, edit or secure your PDF.</p></details>
+   <details><summary>2. Add your files</summary><p>Drag and drop or tap to select. Your files stay on your device the whole time.</p></details>
+   <details><summary>3. Download the result</summary><p>The finished file downloads instantly — no queue, no email, no watermark.</p></details></div>
+  <div class="illu"><div class="doc"><i></i><i></i><i></i><i class="s"></i></div><span class="f1">📄</span><span class="f2">✅</span><span class="f3">⚡</span></div>
+ </section>
+
+ <section class="cloudband"><div class="wrap">
+  <p class="eyebrow">— Get started —</p><h2>Start Working on Your PDFs — Free!</h2>
+  <p class="muted narrow">No installation, no sign-up. Open a tool and get your work done in seconds.</p>
+  <div class="cta"><a href="#merge" class="blue" onclick="openTool('merge');return false">Merge PDF</a><a href="#compress" class="soft" onclick="openTool('compress');return false">Compress PDF</a></div>
+ </div></section>
 </main>
 
 <main id="tool" class="wrap" hidden>
