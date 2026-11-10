@@ -161,9 +161,10 @@ const TOOLS={
 // ---------- UI ----------
 let cur,files=[],marks=[],pvDoc=null,pvVp=null,cat='All';
 function grid(){$('tabs').innerHTML=CATS.map(c=>`<button class="${c===cat?'on':''}" onclick="cat='${c}';grid()">${c}</button>`).join('');
- $('grid').innerHTML=Object.entries(TOOLS).filter(([,t])=>cat==='All'||t.cat===cat).map(([k,t])=>`<div class="card" onclick="openTool('${k}')"><div class="ic">${t.ic}</div><h3>${t.name}</h3><p>${t.desc}</p></div>`).join('')}
-function home(){$('home').hidden=false;$('tool').hidden=true;history.replaceState(null,'',location.pathname)}
-function openTool(k){cur=TOOLS[k];files=[];marks=[];pvDoc=null;$('home').hidden=true;$('tool').hidden=false;$('t-title').textContent=cur.name;$('t-desc').textContent=cur.desc;
+ $('grid').innerHTML=Object.entries(TOOLS).filter(([,t])=>cat==='All'||t.cat===cat).map(([k,t])=>`<a href="#${k}" class="card c${CATS.indexOf(t.cat)}" onclick="openTool('${k}');return false"><div class="ic">${t.ic}</div><h3>${t.name}</h3><p>${t.desc}</p></a>`).join('')}
+function goCat(c){home();cat=c;grid();$('tools').scrollIntoView({behavior:'smooth'})}
+function home(){$('home').hidden=false;$('tool').hidden=true;window.scrollTo(0,0);history.replaceState(null,'',location.pathname)}
+function openTool(k){cur=TOOLS[k];files=[];marks=[];pvDoc=null;$('home').hidden=true;$('tool').hidden=false;$('t-title').textContent=cur.name;$('t-ic').className='tic c'+CATS.indexOf(cur.cat);$('t-ic').textContent=cur.ic;$('t-desc').textContent=cur.desc;
  const fi=$('file');fi.accept=cur.accept;fi.multiple=!!cur.multi;cur.capture?fi.setAttribute('capture','environment'):fi.removeAttribute('capture');
  $('drop').querySelector('b').textContent=cur.capture?'Take photo / select images':cur.multi?'Select files':'Select file';
  $('opts').innerHTML=cur.opts||'';$('out').innerHTML='';$('pvw').hidden=true;msg('');render2();location.hash=k;window.scrollTo(0,0);
