@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#38bdf8"/><stop offset="1" stop-color="#0369a1"/></linearGradient></defs>
-<rect width="64" height="64" rx="18" fill="url(#g)"/>
-<path d="M17 17c-6 1-9 13-6 22 2 4 7 3 8-1l3-14c1-5-1-8-5-7z" fill="#334155"/><path d="M47 17c6 1 9 13 6 22-2 4-7 3-8-1l-3-14c-1-5 1-8 5-7z" fill="#334155"/>
-<ellipse cx="32" cy="34" rx="15" ry="16" fill="#fff"/><ellipse cx="38.5" cy="28.5" rx="6.2" ry="6.6" fill="#dbe7f3"/>
-<ellipse cx="25.5" cy="30" rx="2.3" ry="2.9" fill="#0b0f19"/><ellipse cx="38.5" cy="30" rx="2.3" ry="2.9" fill="#0b0f19"/><circle cx="26.3" cy="29" r=".8" fill="#fff"/><circle cx="39.3" cy="29" r=".8" fill="#fff"/>
-<ellipse cx="32" cy="41" rx="8.5" ry="6.3" fill="#eef4fa"/><path d="M28.3 37.6h7.4c1.1 0 1.6 1.1 1 1.9L33 42.8a1.4 1.4 0 0 1-2 0l-3.7-3.3c-.6-.8-.1-1.9 1-1.9z" fill="#0b0f19"/><path d="M30 45h4v2.6a2 2 0 0 1-4 0z" fill="#fb7185"/>
-</svg>
