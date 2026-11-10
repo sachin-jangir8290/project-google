@@ -2,17 +2,18 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PDFKaro – Free PDF Tools</title>
+<title>Openwise – Free PDF Tools</title>
 <link rel="stylesheet" href="assets/style.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 </head>
 <body>
-<header class="top"><a href="#" class="logo" onclick="home()">PDF<span>Karo</span></a>
-<nav><a href="#" onclick="home()">All tools</a></nav></header>
+<header class="top"><a href="#" class="logo" onclick="home();return false">Open<span>wise</span></a>
+<nav><a href="#" onclick="home();return false">All tools</a></nav></header>
 
 <main id="home">
-  <section class="hero"><h1>Every PDF tool you need, in one place</h1>
-  <p>Merge, split, rotate, watermark and convert PDFs — 100% free. Files never leave your browser.</p></section>
+  <section class="hero"><h1>Every tool you need to work with PDFs</h1>
+  <p>Merge, split, compress, convert, edit, sign, protect and OCR — free. Your files never leave your browser.</p></section>
+  <div id="tabs"></div>
   <section class="grid" id="grid"></section>
 </main>
 
@@ -21,10 +22,12 @@
   <label class="drop" id="drop"><input type="file" id="file" hidden><b>Select files</b><span>or drop them here</span></label>
   <ul id="list"></ul>
   <div id="opts"></div>
+  <div id="pvw" hidden><p class="muted">Click on the page to place it</p><canvas id="pv"></canvas></div>
   <button id="run" class="btn" disabled>Process</button>
   <p id="msg"></p>
+  <div id="out"></div>
 </main>
-<footer>© PDFKaro — all processing happens locally in your browser.</footer>
+<footer>© Openwise — all processing happens locally in your browser.</footer>
 <script src="assets/app.js"></script>
 </body>
 </html>

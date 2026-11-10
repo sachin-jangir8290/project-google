@@ -16,3 +16,12 @@ main{max-width:1100px;margin:auto;padding:24px 16px}
 #opts{margin:16px auto;max-width:600px}#opts input,#opts select{padding:8px;border-radius:6px;border:1px solid #8885;background:var(--card);color:var(--tx);margin:4px}
 .btn{background:var(--acc);color:#fff;border:0;padding:14px 40px;font-size:17px;border-radius:10px;cursor:pointer}.btn:disabled{opacity:.4}
 footer{text-align:center;color:var(--mu);padding:30px;font-size:13px}
+#tabs{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:20px}
+#tabs button{border:1px solid #8884;background:var(--card);color:var(--tx);padding:8px 16px;border-radius:20px;cursor:pointer}
+#tabs button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+#opts label{display:inline-block;margin:4px 8px}#opts textarea{width:100%;min-height:160px;padding:8px;border-radius:8px;background:var(--card);color:var(--tx);border:1px solid #8885}
+#sig{background:#fff;border:1px solid #8885;border-radius:8px;touch-action:none;display:block;margin:8px auto;max-width:100%}
+#pvw{margin:12px auto;max-width:700px}#pv{max-width:100%;border:1px solid #8885;cursor:crosshair;box-shadow:0 2px 10px #0002}
+#out{text-align:left;max-width:900px;margin:16px auto;white-space:pre-wrap;font-family:ui-monospace,monospace;font-size:13px}
+#out .add{background:#16a34a33}#out .del{background:#dc262633;text-decoration:line-through}
+.small{font-size:12px}
