@@ -1,4 +1,4 @@
-// Openwise icon set — 24x24 stroke icons (currentColor)
+// PDFNest icon set — 24x24 stroke icons (currentColor)
 const DOC='<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/>';
 const ICONS={
  merge:'<path d="M9 2h6l4 4v10a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><path d="M5 7v13a1 1 0 0 0 1 1h10"/><path d="M11 11h5M13.5 8.5v5"/>',

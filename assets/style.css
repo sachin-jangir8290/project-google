@@ -142,3 +142,4 @@ footer{background:var(--card);border-top:1px solid var(--bd);padding:50px 0 24px
 body{background:linear-gradient(180deg,#8fd3fb 0,#dff1fe 160px,var(--bg) 320px) no-repeat,var(--bg)}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]) body{background:linear-gradient(180deg,#0c4a6e 0,var(--bg) 320px) no-repeat,var(--bg)}}
 #tool{padding-top:110px!important}.page{padding-top:110px}.pagetop{background:none}
+.mark{width:34px;height:34px;border-radius:10px;background:none;display:block}.logo b{color:var(--acc)}
