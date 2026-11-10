@@ -246,7 +246,11 @@ function trimSig(s){if(!sigDirty)return null;const d=s.getContext('2d').getImage
 $('file').onchange=e=>{add(e.target.files);e.target.value=''};
 const dr=$('drop');dr.ondragover=e=>{e.preventDefault();dr.classList.add('over')};dr.ondragleave=()=>dr.classList.remove('over');dr.ondrop=e=>{e.preventDefault();dr.classList.remove('over');add(e.dataTransfer.files)};
 $('run').onclick=async()=>{$('run').disabled=true;msg('Processing…');try{await cur.run(files);if($('msg').textContent.startsWith('Processing'))msg('✅ Done! Your download has started.')}catch(e){console.error(e);msg('❌ '+e.message)}$('run').disabled=false};
+window.addEventListener('DOMContentLoaded',()=>{
+if(window.IMG_TOOLS){Object.keys(TOOLS).forEach(k=>delete TOOLS[k]);Object.assign(TOOLS,IMG_TOOLS);CATS.splice(0,CATS.length,...IMG_CATS)}
 document.querySelectorAll('i[data-i]').forEach(e=>e.outerHTML=svg(e.dataset.i,e.className));
 const io='IntersectionObserver' in window?new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12}):null;
 document.querySelectorAll('[data-r]').forEach(e=>io?io.observe(e):e.classList.add('in'));
+window.addEventListener('hashchange',()=>{const k=location.hash.slice(1);if(TOOLS[k]&&cur!==TOOLS[k])openTool(k)});
 grid();if(TOOLS[location.hash.slice(1)])openTool(location.hash.slice(1));
+});

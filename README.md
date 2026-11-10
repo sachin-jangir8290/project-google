@@ -17,3 +17,6 @@ Libraries (pdf-lib, pdf.js, JSZip, SheetJS, PptxGenJS, mammoth, html2pdf, jsPDF,
 2. Approval ke baad `assets/ads.js` mein `ADSENSE_CLIENT` aur `AD_SLOTS` bharo.
 3. `ads.txt` mein apna publisher ID daalo.
 4. `contact.html` mein apna asli email daalo.
+
+## Image tools
+`images.html` — 22 image tools (compress, resize, crop, upscale, remove metadata, convert to JPG/PNG/WEBP, image to PDF, base64, favicon generator, HTML to image, rotate, flip, watermark, border & shape, filters, blur & pixelate, remove background, meme generator, collage, color picker). Code: `assets/imgtools.js`.
