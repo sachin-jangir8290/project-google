@@ -132,3 +132,7 @@ footer{background:var(--card);border-top:1px solid var(--bd);padding:50px 0 24px
 .badge{transform-box:fill-box;transform-origin:center;animation:popb 3s ease-in-out infinite}@keyframes popb{0%,65%{transform:scale(0)}75%{transform:scale(1.15)}85%,100%{transform:scale(1)}}
 .drop b{transition:transform .2s}.drop:hover b{transform:scale(1.04)}#tool>*{animation:up .5s both}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}[data-r]{opacity:1;transform:none}}
+.ad{max-width:970px;margin:40px auto;min-height:100px;text-align:center}.adl{display:block;font-size:11px;color:var(--mu);margin-bottom:4px;letter-spacing:.05em;text-transform:uppercase}
+.copy a{color:var(--mu)}.copy a:hover{color:var(--acc)}
+.page{max-width:780px;margin:auto;padding:40px 16px 80px}.page h1{font-size:clamp(30px,4vw,42px);margin:20px 0 6px}.page h2{margin:32px 0 8px;font-size:22px}.page p,.page li{color:var(--mu)}
+.pagetop{background:linear-gradient(180deg,#8fd3fb,var(--bg));padding-bottom:10px}
