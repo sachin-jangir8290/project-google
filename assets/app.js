@@ -15,6 +15,8 @@ const hex=h=>{const n=parseInt(h.slice(1),16);return rgb((n>>16&255)/255,(n>>8&2
 
 // ---------- helpers ----------
 const range=(s,n)=>{const o=[];s.split(',').forEach(p=>{const [a,b]=p.trim().split('-').map(x=>parseInt(x));if(!a)return;for(let i=a;i<=(isNaN(b)?a:b);i++)if(i>=1&&i<=n&&!o.includes(i-1))o.push(i-1)});return o};
+const embedAll=async(o,d)=>{const out=[];for(const p of d.getPages()){const {width,height}=p.getSize();out.push(p.node.Contents()?await o.embedPage(p):{width,height,blank:1})}return out};
+const ftype=x=>{const L=PDFLib;return x instanceof L.PDFCheckBox?'check':x instanceof L.PDFTextField?'text':(x instanceof L.PDFDropdown||x instanceof L.PDFRadioGroup||x instanceof L.PDFOptionList)?'choice':''};
 const load=async f=>PDFDocument.load(await f.arrayBuffer(),{ignoreEncryption:true});
 function save(bytes,name,type){const a=document.createElement('a');a.href=URL.createObjectURL(bytes instanceof Blob?bytes:new Blob([bytes],{type:type||(name.endsWith('.pdf')?'application/pdf':'application/octet-stream')}));a.download=name;document.body.append(a);a.click();a.remove()}
 async function zipSave(entries,name){if(entries.length===1)return save(entries[0][1],entries[0][0]);await need('zip');const z=new JSZip();entries.forEach(([n,b])=>z.file(n,b));save(await z.generateAsync({type:'blob'}),name)}
@@ -156,6 +158,58 @@ const TOOLS={
    for(let i=1;i<=d.numPages;i++){prog(i,d.numPages);const {c,vp}=await render(d,i,2),w=vp.width/2,h=vp.height/2,o=w>h?'l':'p';
     if(!doc)doc=new jspdf.jsPDF({unit:'pt',format:[w,h],orientation:o,encryption:{userPassword:pw,ownerPassword:pw+'#owner',userPermissions:['print']}});else doc.addPage([w,h],o);doc.addImage(c.toDataURL('image/jpeg',.85),'JPEG',0,0,w,h)}
    save(doc.output('blob'),base(f)+'-protected.pdf')}},
+ // ----- more tools -----
+ reverse:{cat:'Organize',ic:'',name:'Reverse PDF',desc:'Flip the page order — last page becomes first.',accept:PDF,
+  run:async([f])=>{const d=await load(f),o=await PDFDocument.create();(await o.copyPages(d,d.getPageIndices().reverse())).forEach(p=>o.addPage(p));save(await o.save(),base(f)+'-reversed.pdf')}},
+ alternate:{cat:'Organize',ic:'',name:'Alternate & Mix',desc:'Interleave pages of two PDFs (great for double-sided scans).',multi:1,accept:PDF,
+  opts:'<label><input type="checkbox" id="rv"> Reverse the second file (back pages scanned in reverse)</label>',
+  run:async fs=>{if(fs.length!==2)throw new Error('Select exactly 2 PDFs');const [a,b]=await Promise.all(fs.map(load)),o=await PDFDocument.create(),A=await o.copyPages(a,a.getPageIndices());let B=await o.copyPages(b,b.getPageIndices());if($('rv').checked)B.reverse();
+   for(let i=0;i<Math.max(A.length,B.length);i++){if(A[i])o.addPage(A[i]);if(B[i])o.addPage(B[i])}save(await o.save(),'mixed.pdf')}},
+ insert:{cat:'Organize',ic:'',name:'Insert Blank Pages',desc:'Add empty pages after any page.',accept:PDF,opts:'<label>After pages (0 = at start): <input id="pg" placeholder="0, 3, 5"></label>',
+  run:async([f])=>{const d=await load(f),n=d.getPageCount(),at=[...new Set(val('pg').split(',').map(x=>parseInt(x)).filter(x=>x>=0&&x<=n))].sort((a,b)=>b-a);if(!at.length)throw new Error('Enter page numbers');
+   at.forEach(i=>{const {width,height}=d.getPage(Math.max(0,i-1)).getSize();d.insertPage(i,[width,height])});save(await d.save(),base(f)+'-blank-added.pdf')}},
+ blank:{cat:'Organize',ic:'',name:'Remove Blank Pages',desc:'Detect and delete empty pages automatically.',accept:PDF,
+  run:async([f])=>{const pd=await pjs(f),keep=[];for(let i=1;i<=pd.numPages;i++){prog(i,pd.numPages);const {c}=await render(pd,i,.5),px=c.getContext('2d').getImageData(0,0,c.width,c.height).data;let ink=0;for(let j=0;j<px.length;j+=4)if(px[j]+px[j+1]+px[j+2]<720)ink++;if(ink/(px.length/4)>.002)keep.push(i-1)}
+   const removed=pd.numPages-keep.length;if(!removed){msg('No blank pages found.');return}if(!keep.length)throw new Error('All pages look blank');const d=await load(f),o=await PDFDocument.create();(await o.copyPages(d,keep)).forEach(p=>o.addPage(p));save(await o.save(),base(f)+'-no-blanks.pdf');msg(`Removed ${removed} blank page(s).`)}},
+ nup:{cat:'Organize',ic:'',name:'Multiple Pages per Sheet',desc:'Print 2 or 4 pages on one sheet to save paper.',accept:PDF,opts:'<label>Pages per sheet: <select id="nu"><option>2</option><option>4</option></select></label>',
+  run:async([f])=>{const d=await load(f),o=await PDFDocument.create(),n=+val('nu'),ep=await embedAll(o,d),[W,H]=n===2?[842,595]:[595,842],cols=2,rows=n/2,cw=W/cols,ch=H/rows;
+   for(let i=0;i<ep.length;i+=n){const pg=o.addPage([W,H]);ep.slice(i,i+n).forEach((e,k)=>{if(e.blank)return;const s=Math.min((cw-20)/e.width,(ch-20)/e.height),w=e.width*s,h=e.height*s,cx=k%cols,cy=Math.floor(k/cols);pg.drawPage(e,{x:cx*cw+(cw-w)/2,y:H-(cy+1)*ch+(ch-h)/2,width:w,height:h})})}
+   save(await o.save(),base(f)+`-${n}up.pdf`)}},
+ resize:{cat:'Organize',ic:'',name:'Resize Pages',desc:'Fit every page to A4, Letter, A3 or A5.',accept:PDF,opts:'<label>Size: <select id="ps"><option value="595,842">A4</option><option value="612,792">Letter</option><option value="842,1191">A3</option><option value="420,595">A5</option><option value="612,1008">Legal</option></select></label>',
+  run:async([f])=>{const d=await load(f),o=await PDFDocument.create(),[w0,h0]=val('ps').split(',').map(Number);for(const e of await embedAll(o,d)){const [W,H]=e.width>e.height?[h0,w0]:[w0,h0],s=Math.min(W/e.width,H/e.height),pg=o.addPage([W,H]);if(!e.blank)pg.drawPage(e,{x:(W-e.width*s)/2,y:(H-e.height*s)/2,width:e.width*s,height:e.height*s})}save(await o.save(),base(f)+'-resized.pdf')}},
+
+ grayscale:{cat:'Optimize',ic:'',name:'Grayscale PDF',desc:'Convert colour pages to black & white to save ink.',accept:PDF,
+  run:async([f])=>save(await raster(await pjs(f),{scale:1.6,q:.8,edit:c=>{const x=c.getContext('2d'),im=x.getImageData(0,0,c.width,c.height),p=im.data;for(let i=0;i<p.length;i+=4){const g=p[i]*.299+p[i+1]*.587+p[i+2]*.114;p[i]=p[i+1]=p[i+2]=g}x.putImageData(im,0,0)}}),base(f)+'-grayscale.pdf')},
+ flatten:{cat:'Optimize',ic:'',name:'Flatten PDF',desc:'Lock form fields so filled values cannot be changed.',accept:PDF,
+  run:async([f])=>{const d=await load(f),fm=d.getForm(),n=fm.getFields().length;if(!n){msg('This PDF has no form fields to flatten.');return}fm.flatten();save(await d.save(),base(f)+'-flattened.pdf');msg(`Flattened ${n} field(s).`)}},
+ info:{cat:'Optimize',ic:'',name:'PDF Info',desc:'See pages, size, fonts, metadata and whether text is searchable.',accept:PDF,
+  run:async([f])=>{const d=await load(f),pd=await pjs(f),sz=d.getPage(0).getSize();let txt=0;for(let i=1;i<=Math.min(pd.numPages,5);i++)txt+=(await (await pd.getPage(i)).getTextContent()).items.length;
+   const rows=[['File',f.name],['File size',(f.size/1024).toFixed(1)+' KB'],['Pages',d.getPageCount()],['Page size',`${Math.round(sz.width)} × ${Math.round(sz.height)} pt (${(sz.width/72*25.4).toFixed(0)} × ${(sz.height/72*25.4).toFixed(0)} mm)`],
+    ['Title',d.getTitle()||'—'],['Author',d.getAuthor()||'—'],['Creator',d.getCreator()||'—'],['Producer',d.getProducer()||'—'],['Created',d.getCreationDate()?.toLocaleString()||'—'],['Modified',d.getModificationDate()?.toLocaleString()||'—'],
+    ['Form fields',d.getForm().getFields().length],['Searchable text',txt?'Yes':'No (scanned — use OCR PDF)'],['Encrypted',d.isEncrypted?'Yes':'No']];
+   $('out').innerHTML='<table class="info">'+rows.map(([k,v])=>`<tr><th>${k}</th><td>${esc(String(v))}</td></tr>`).join('')+'</table>';msg('Here is your PDF report:')}},
+
+ txt2pdf:{cat:'Convert to PDF',ic:'',name:'Text to PDF',desc:'Turn a .txt file or typed text into a clean PDF.',accept:'.txt,.md,.csv,.log,text/plain',optional:1,opts:'<textarea id="html" placeholder="Type or paste your text here…"></textarea>',
+  run:async fs=>{const t=fs[0]?await fs[0].text():val('html');if(!t.trim())throw new Error('Add some text first');await htmlPdf(`<div style="white-space:pre-wrap;font-size:11pt">${esc(t)}</div>`,(fs[0]?base(fs[0]):'text')+'.pdf')}},
+
+ fillform:{cat:'Edit',ic:'',name:'Fill PDF Form',desc:'Type into the form fields of any fillable PDF.',accept:PDF,
+  onfile:async([f])=>{const fs=(await load(f)).getForm().getFields();if(!fs.length){$('opts').innerHTML='<p class="muted">This PDF has no fillable fields.</p>';return}
+   $('opts').innerHTML='<div class="form">'+fs.map((x,i)=>{const n=esc(x.getName()),t=ftype(x);if(t==='check')return `<label class="row"><span>${n}</span><input type="checkbox" data-f="${i}" ${x.isChecked()?'checked':''}></label>`;
+    if(t==='choice')return `<label class="row"><span>${n}</span><select data-f="${i}"><option value="">—</option>${x.getOptions().map(o=>`<option>${esc(o)}</option>`).join('')}</select></label>`;
+    if(t==='text')return `<label class="row"><span>${n}</span><input data-f="${i}" value="${esc(x.getText()||'')}"></label>`;return ''}).join('')+'</div><label><input type="checkbox" id="fl"> Lock (flatten) after filling</label>'},
+  run:async([f])=>{const d=await load(f),fm=d.getForm(),fs=fm.getFields();document.querySelectorAll('[data-f]').forEach(el=>{const x=fs[+el.dataset.f],t=ftype(x);
+    if(t==='check')el.checked?x.check():x.uncheck();else if(t==='text')x.setText(el.value);else if(el.value)x.select(el.value)});if($('fl')?.checked)fm.flatten();save(await d.save(),base(f)+'-filled.pdf')}},
+ headerfooter:{cat:'Edit',ic:'',name:'Header & Footer',desc:'Add text to the top and bottom of every page. Use {n} and {total}.',accept:PDF,
+  opts:'<label>Header: <input id="hd" placeholder="Company name"></label><label>Footer: <input id="ft" value="Page {n} of {total}"></label><label>Align: <select id="al"><option value="c">Center</option><option value="l">Left</option><option value="r">Right</option></select></label><label>Size: <input id="sz" type="number" value="10" style="width:60px"></label>',
+  run:async([f])=>{const d=await load(f),fn=await d.embedFont(StandardFonts.Helvetica),ps=d.getPages(),s=+val('sz')||10,al=val('al');
+   ps.forEach((p,i)=>{const {width:W,height:H}=p.getSize();[[val('hd'),H-28],[val('ft'),18]].forEach(([t,y])=>{if(!t)return;t=t.replace(/\{n\}/g,i+1).replace(/\{total\}/g,ps.length);const w=fn.widthOfTextAtSize(t,s);p.drawText(t,{x:al==='l'?36:al==='r'?W-w-36:W/2-w/2,y,size:s,font:fn,color:rgb(.25,.25,.25)})})});
+   save(await d.save(),base(f)+'-header-footer.pdf')}},
+ stamp:{cat:'Edit',ic:'',name:'Add Image / Logo',desc:'Stamp your logo or a stamp image on every page.',multi:1,accept:PDF+',image/*',
+  opts:'<p class="muted small">Select 1 PDF and 1 image.</p><label>Position: <select id="pos"><option value="tr">Top right</option><option value="tl">Top left</option><option value="br">Bottom right</option><option value="bl">Bottom left</option><option value="c">Center</option></select></label><label>Width: <select id="iw"><option value=".15">Small</option><option value=".25" selected>Medium</option><option value=".45">Large</option></select></label><label>Opacity: <select id="op"><option>1</option><option>0.6</option><option>0.3</option></select></label>',
+  run:async fs=>{const pf=fs.find(f=>/pdf/.test(f.type)||/\.pdf$/i.test(f.name)),im=fs.find(f=>f.type.startsWith('image/'));if(!pf||!im)throw new Error('Select one PDF and one image');
+   const d=await load(pf),c=await imgCanvas(im),img=await d.embedPng(await c2b(c,'image/png')),pos=val('pos'),m=24;
+   d.getPages().forEach(p=>{const {width:W,height:H}=p.getSize(),w=W*+val('iw'),h=w*c.height/c.width;p.drawImage(img,{x:pos==='c'?(W-w)/2:pos[1]==='l'?m:W-w-m,y:pos==='c'?(H-h)/2:pos[0]==='b'?m:H-h-m,width:w,height:h,opacity:+val('op')})});save(await d.save(),base(pf)+'-stamped.pdf')}},
+
 };
 
 // ---------- UI ----------
@@ -173,7 +227,7 @@ function openTool(k){cur=TOOLS[k];files=[];marks=[];pvDoc=null;$('home').hidden=
 function render2(){$('list').innerHTML=files.map((f,i)=>`<li><span>${esc(f.name)} <span class="muted small">${(f.size/1024).toFixed(0)} KB</span></span><span>${cur.multi?`<button onclick="mv(${i},-1)">▲</button><button onclick="mv(${i},1)">▼</button>`:''}<button onclick="files.splice(${i},1);render2()">✕</button></span></li>`).join('');
  $('run').disabled=!files.length&&!cur.optional;if(cur.preview&&files.length&&!pvDoc)pjs(files[0]).then(d=>{pvDoc=d;$('pp').max=d.numPages;drawPreview()}).catch(e=>msg('Error: '+e.message))}
 function mv(i,d){const j=i+d;if(j<0||j>=files.length)return;[files[i],files[j]]=[files[j],files[i]];render2()}
-function add(fl){fl=[...fl];if(!fl.length)return;files=cur.multi?files.concat(fl):fl.slice(0,1);pvDoc=null;marks=[];render2()}
+function add(fl){fl=[...fl];if(!fl.length)return;files=cur.multi?files.concat(fl):fl.slice(0,1);pvDoc=null;marks=[];render2();if(cur.onfile&&files.length)cur.onfile(files).catch(e=>msg('❌ '+e.message))}
 async function drawPreview(){if(!pvDoc)return;const pg=Math.min(Math.max(1,+val('pp')||1),pvDoc.numPages),{c,vp}=await render(pvDoc,pg,1.5),cv=$('pv');cv.width=c.width;cv.height=c.height;const x=cv.getContext('2d');x.drawImage(c,0,0);pvVp=vp;$('pvw').hidden=false;
  for(const m of marks.filter(m=>m.page===pg)){const [px,py]=vp.convertToViewportPoint(m.x,m.y);if(m.text){x.fillStyle=m.color;x.font=`${m.size*1.5}px Helvetica,Arial`;x.fillText(m.text,px,py+m.size*1.5*.2)}else{const im=new Image();im.src=URL.createObjectURL(new Blob([m.png],{type:'image/png'}));await im.decode();const w=m.w*1.5,h=w*im.height/im.width;x.drawImage(im,px-w/2,py-h/2,w,h)}}}
 $('pv').onclick=async e=>{if(!pvVp)return;const r=e.target.getBoundingClientRect(),cx=(e.clientX-r.left)*e.target.width/r.width,cy=(e.clientY-r.top)*e.target.height/r.height,[x,y]=pvVp.convertToPdfPoint(cx,cy),page=Math.min(Math.max(1,+val('pp')||1),pvDoc.numPages);

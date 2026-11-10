@@ -143,3 +143,20 @@ body{background:linear-gradient(180deg,#8fd3fb 0,#dff1fe 160px,var(--bg) 320px) 
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]) body{background:linear-gradient(180deg,#0c4a6e 0,var(--bg) 320px) no-repeat,var(--bg)}}
 #tool{padding-top:110px!important}.page{padding-top:110px}.pagetop{background:none}
 .mark{width:34px;height:34px;border-radius:10px;background:none;display:block}.logo b{color:var(--acc)}
+.form{display:grid;gap:8px;text-align:left;max-width:520px;margin:0 auto 10px}.form .row{display:flex!important;justify-content:space-between;align-items:center;gap:10px;margin:0!important}.form .row span{color:var(--mu);font-size:14px;word-break:break-all}
+table.info{border-collapse:collapse;margin:auto;font-family:inherit;font-size:14px;background:var(--card);border-radius:12px;overflow:hidden}table.info th,table.info td{padding:9px 16px;border-bottom:1px solid var(--bd);text-align:left;white-space:normal}table.info th{color:var(--mu);font-weight:500}
+/* animated PDFPup logo */
+span.mark{display:block;width:36px;height:36px;flex:none}.pup{width:100%;height:100%;display:block;overflow:visible}
+.lg-doc,.lg-dog,.ear-l,.ear-r,.eyes,.tongue{transform-box:view-box}
+.lg-doc{transform-origin:32px 32px;animation:lgdoc 7s ease-in-out infinite}
+.lg-dog{transform-origin:32px 34px;animation:lgdog 7s ease-in-out infinite}
+@keyframes lgdoc{0%,30%{transform:none;opacity:1}38%,90%{transform:scale(.1) rotate(-120deg);opacity:0}97%,100%{transform:none;opacity:1}}
+@keyframes lgdog{0%,32%{transform:scale(.1) rotate(120deg);opacity:0}42%{transform:scale(1.12) rotate(-6deg);opacity:1}47%,84%{transform:none;opacity:1}92%,100%{transform:scale(.1) rotate(120deg);opacity:0}}
+.ear-l{transform-origin:19px 17px;animation:earl 7s ease-in-out infinite}.ear-r{transform-origin:45px 17px;animation:earr 7s ease-in-out infinite}
+@keyframes earl{0%,48%,62%,100%{transform:none}52%{transform:rotate(14deg)}57%{transform:rotate(-8deg)}}
+@keyframes earr{0%,50%,66%,100%{transform:none}55%{transform:rotate(-16deg)}61%{transform:rotate(8deg)}}
+.eyes{transform-origin:32px 30px;animation:blink 7s infinite}@keyframes blink{0%,67%,71%,77%,81%,100%{transform:none}69%,79%{transform:scaleY(.1)}}
+.tongue{transform-origin:32px 45px;animation:pant 7s infinite}@keyframes pant{0%,50%,82%,100%{transform:scaleY(0)}55%,65%,75%{transform:scaleY(1)}60%,70%{transform:scaleY(.6)}}
+.logo:hover .lg-dog{animation-duration:3.5s}
+footer span.mark{width:44px;height:44px}
+@media (prefers-reduced-motion:reduce){.lg-doc{opacity:0}.lg-dog{opacity:1;transform:none}}

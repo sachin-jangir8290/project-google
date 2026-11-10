@@ -1,4 +1,4 @@
-// PDFNest icon set — 24x24 stroke icons (currentColor)
+// PDFPup icon set — 24x24 stroke icons (currentColor)
 const DOC='<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/>';
 const ICONS={
  merge:'<path d="M9 2h6l4 4v10a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z"/><path d="M5 7v13a1 1 0 0 0 1 1h10"/><path d="M11 11h5M13.5 8.5v5"/>',
@@ -41,5 +41,18 @@ const ICONS={
  phone:'<rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/>',
  check:'<path d="M20 6 9 17l-5-5"/>',
  globe:'<circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/>',
+ reverse:'<path d="M7 4v16M3 16l4 4 4-4M17 20V4M13 8l4-4 4 4"/>',
+ alternate:'<path d="M4 6h10M4 12h16M4 18h10"/><path d="m17 3 3 3-3 3M17 15l3 3-3 3"/>',
+ insert:DOC+'<path d="M12 11v6M9 14h6"/>',
+ blank:DOC+'<path d="m9 12 6 6M15 12l-6 6"/>',
+ nup:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16"/><path d="M6 8h3M6 11h3M15 8h3M15 11h3"/>',
+ resize:'<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>',
+ grayscale:'<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/>',
+ flatten:'<path d="m12 2 9 5-9 5-9-5z"/><path d="m3 12 9 5 9-5M3 17l9 5 9-5"/>',
+ info:'<circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/>',
+ txt2pdf:DOC+'<path d="M8 12h8M10 12v6"/>',
+ fillform:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 8h10M7 12h4M7 16h6"/><path d="m14 15 2 2 4-4"/>',
+ headerfooter:'<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 7h16M4 17h16M8 11h8M8 13.5h5"/>',
+ stamp:'<path d="M9 3h6v5l3 3v3H6v-3l3-3z"/><path d="M5 18h14v3H5z"/>',
 };
 const svg=(k,c='')=>`<svg class="i ${c}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[k]||DOC}</svg>`;
