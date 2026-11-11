@@ -20,9 +20,17 @@ const esri=p=>`https://server.arcgisonline.com/ArcGIS/rest/services/${p}/MapServ
 const LAYERS={
  sat:{name:'Satellite',l:L.layerGroup([L.tileLayer(esri('World_Imagery'),{maxZoom:19,maxNativeZoom:18,attribution:'Imagery © Esri'}),L.tileLayer(esri('Reference/World_Transportation'),{maxZoom:19,opacity:.9}),L.tileLayer(esri('Reference/World_Boundaries_and_Places'),{maxZoom:19})])},
  dark:{name:'Night',l:L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:20,subdomains:'abcd',attribution:'© OpenStreetMap contributors © CARTO'})},
+ voyager:{name:'Voyager',l:L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{maxZoom:20,subdomains:'abcd',attribution:'© OpenStreetMap contributors © CARTO'})},
  street:{name:'Street',l:L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'})}};
+const LTHUMB={sat:(z,x,y)=>`https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/${z}/${y}/${x}`,voyager:(z,x,y)=>`https://a.basemaps.cartocdn.com/rastertiles/voyager/${z}/${x}/${y}.png`,dark:(z,x,y)=>`https://a.basemaps.cartocdn.com/dark_all/${z}/${x}/${y}.png`,street:(z,x,y)=>`https://tile.openstreetmap.org/${z}/${x}/${y}.png`};
+const LDESC={sat:'Real photo of the ground',voyager:'Clean roads and place names',dark:'Easy on the eyes at night',street:'Classic OpenStreetMap'};
 let layerKey=store.get('layer')||'sat';if(!LAYERS[layerKey])layerKey='sat';LAYERS[layerKey].l.addTo(map);
-$('layerBtn').onclick=()=>{const ks=Object.keys(LAYERS);map.removeLayer(LAYERS[layerKey].l);layerKey=ks[(ks.indexOf(layerKey)+1)%ks.length];LAYERS[layerKey].l.addTo(map);store.set('layer',layerKey);toast(LAYERS[layerKey].name+' map')};
+function setLayer(k){if(!LAYERS[k]||k===layerKey)return;map.removeLayer(LAYERS[layerKey].l);layerKey=k;LAYERS[k].l.addTo(map);LAYERS[k].l.bringToBack&&LAYERS[k].l.bringToBack();store.set('layer',k);document.body.dataset.map=k;pickUI()}
+function pickUI(){const c=map.getCenter(),z=13,n=2**z,x=Math.floor((c.lng+180)/360*n),y=Math.floor((1-Math.log(Math.tan(rad(c.lat))+1/Math.cos(rad(c.lat)))/Math.PI)/2*n);
+ $('lpick').innerHTML='<b class="lph">Map style</b>'+['sat','voyager','dark','street'].map(k=>`<button data-k="${k}" class="${k===layerKey?'on':''}"><img src="${LTHUMB[k](z,x,y)}" alt="" loading="lazy"><span><b>${LAYERS[k].name}</b><small>${LDESC[k]}</small></span></button>`).join('')}
+$('layerBtn').onclick=e=>{e.stopPropagation();const o=$('lpick').hidden;if(o)pickUI();$('lpick').hidden=!o};
+$('lpick').onclick=e=>{const b=e.target.closest('button[data-k]');if(!b)return;setLayer(b.dataset.k);toast(LAYERS[b.dataset.k].name+' map');setTimeout(()=>$('lpick').hidden=true,250)};
+document.addEventListener('click',e=>{if(!e.target.closest('#lpick'))$('lpick').hidden=true});document.body.dataset.map=layerKey;
 map.on('moveend',()=>{const c=map.getCenter();store.set('view',[+c.lat.toFixed(4),+c.lng.toFixed(4)])});
 
 // ---------- icons ----------
