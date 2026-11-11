@@ -82,14 +82,14 @@ function gOn(m){if(m.t==='state'){G.members={};(m.members||[]).forEach(x=>G.memb
  else if(m.t==='leave'){if(G.members[m.id])toast(`${G.members[m.id].name} left`);delete G.members[m.id];if(G.markers[m.id]){map.removeLayer(G.markers[m.id]);delete G.markers[m.id]}}
  else if(m.t==='msg'){G.msgs.push(m);G.msgs=G.msgs.slice(-50);if(m.id!==G.id){say(`${m.name} says: ${m.text}`);if(navigator.vibrate)navigator.vibrate(80)}}
  else if(m.t==='sos'&&m.id!==G.id){say(`Emergency! ${m.name} needs help`);if(navigator.vibrate)navigator.vibrate([600,200,600,200,600]);
-  const ll=[m.lat,m.lng];toast(`🚨 SOS from ${m.name} — tap their pin`);if(m.lat){follow=false;map.flyTo(ll,16)}G.msgs.push({id:m.id,name:m.name,text:'🚨 SOS — needs help here',ts:Date.now(),sos:1})}
+  const ll=[m.lat,m.lng];toast(`SOS from ${m.name} — tap their pin`);if(m.lat){follow=false;map.flyTo(ll,16)}G.msgs.push({id:m.id,name:m.name,text:'SOS — needs help here',ts:Date.now(),sos:1})}
  gUI()}
 function initials(n){return n.trim().split(/\s+/).map(w=>w[0]).join('').slice(0,2).toUpperCase()||'?'}
 function gUI(){const on=!!G.room;$('grpOut').hidden=on;$('grpIn').hidden=!on;const live=on&&G.ws&&G.ws.readyState===1;$('grpLive').hidden=!live;
  if(!on)return;$('grpCodeV').textContent=G.room+(live?'':' · connecting…');
  G.members[G.id]={...(G.members[G.id]||{}),id:G.id,name:myName(),color:myColor(),dist:Math.round(stats.dist),spd:Math.round(stats.speed*3.6),riding,lat:me&&me[0],lng:me&&me[1]};
  const list=Object.values(G.members).sort((a,b)=>(b.dist||0)-(a.dist||0)),pos=list.findIndex(x=>x.id===G.id)+1,ord=n=>n+(['th','st','nd','rd'][(n%100-20)%10]||['th','st','nd','rd'][n%100]||'th');
- $('grpRank').innerHTML=list.length>1?`<span class="av" style="--c:${myColor()}">${esc(initials(myName()))}</span><span><b>You are in ${ord(pos)} place</b><small>${list.length} riders in the group${pos===1?' · keep it up 🔥':''}</small></span>`:'<span><b>Share the code with friends</b><small>They join with the same code</small></span>';
+ $('grpRank').innerHTML=list.length>1?`<span class="av" style="--c:${myColor()}">${esc(initials(myName()))}</span><span><b>You are in ${ord(pos)} place</b><small>${list.length} riders in the group${pos===1?' · keep it up':''}</small></span>`:'<span><b>Share the code with friends</b><small>They join with the same code</small></span>';
  $('grpMembers').innerHTML=list.map((x,i)=>`<li class="${x.id===G.id?'me':''}"><em>${String(i+1).padStart(2,'0')}</em><span class="av" style="--c:${esc(x.color||'#d6f53f')}">${esc(initials(x.name||'?'))}</span><span class="gn"><b>${esc(x.name||'Rider')}${x.id===G.id?' (you)':''}</b><small>${x.riding?`${x.spd||0} km/h`:'not riding'}${x.lat&&me&&x.id!==G.id?' · '+fmtD(hav(me,[x.lat,x.lng]))+' away':''}</small></span><i>${((x.dist||0)/1000).toFixed(1)}km</i></li>`).join('');
  $('grpChat').innerHTML=G.msgs.slice(-20).map(m=>`<div class="gm ${m.id===G.id?'mine':''} ${m.sos?'sos':''}"><b>${esc(m.name)}</b>${esc(m.text)}</div>`).join('')||'<p class="hint">No messages yet.</p>';$('grpChat').scrollTop=1e6;
  // map markers

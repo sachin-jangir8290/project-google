@@ -68,7 +68,7 @@ const stats={t0:0,dist:0,moving:0,max:0,last:null,lastT:0,hist:[],speed:0,tick:n
 const rl=L.layerGroup().addTo(map);let doneLine=null;
 
 // ---------- clock / meta ----------
-function meta(){const d=new Date();$('metaDate').textContent='📅 '+d.toLocaleDateString([],{day:'numeric',month:'short',year:'numeric'})+'  ·  🕒 '+clock(d)}
+function meta(){const d=new Date();$('metaDate').innerHTML=ic('calendar')+d.toLocaleDateString([],{day:'numeric',month:'short',year:'numeric'})+' '+ic('clock')+clock(d)}
 meta();setInterval(meta,30000);
 
 // ---------- location ----------
@@ -222,8 +222,8 @@ function showNext(i,dTo){if(!route){$('next').hidden=true;return}i=i??route.idx?
  const d=dTo??(s.cum-(route.along||0));$('ndist').textContent=fmtD(d);$('next').classList.toggle('soon',riding&&d<150);
  const n=route.steps[i+1];$('nthen').textContent=n&&n.cum-s.cum<400?`Then ${n.text.charAt(0).toLowerCase()+n.text.slice(1)}`:(stepView!=null?`Turn ${i} of ${route.steps.length-1} · ${fmtD(s.cum)} from start`:'')}
 function dock(){if(!route){$('dRemain').textContent='—';$('dEta').textContent='—';return}const remain=route.dist-(route.along||0),avgPlan=route.dist/route.dur,avgMe=stats.moving>60?stats.dist/stats.moving:0,v=avgMe>2?(avgMe+avgPlan)/2:avgPlan;
- $('dRemain').textContent=(remain/1000).toFixed(remain<10000?1:0);const eta=new Date(Date.now()+remain/v*1000);$('dEta').textContent=clock(eta).replace(/\s?[AP]M/i,'');$('metaEta').textContent='🏁 ETA '+clock(eta)}
-function arrive(){say('You have arrived at your destination');toast('🏁 You have arrived!');$('statusChip').textContent='Arrived';$('next').hidden=false;$('nicon').innerHTML=turnIcon('arrive');$('ndist').textContent='Arrived';$('ninstr').textContent=to.name;$('nthen').textContent=`${(stats.dist/1000).toFixed(1)} km in ${fmtT((Date.now()-stats.t0)/1000)}`;stopRide(true)}
+ $('dRemain').textContent=(remain/1000).toFixed(remain<10000?1:0);const eta=new Date(Date.now()+remain/v*1000);$('dEta').textContent=clock(eta).replace(/\s?[AP]M/i,'');$('metaEta').innerHTML=ic('flag')+'ETA '+clock(eta)}
+function arrive(){say('You have arrived at your destination');toast('You have arrived!');$('statusChip').textContent='Arrived';$('next').hidden=false;$('nicon').innerHTML=turnIcon('arrive');$('ndist').textContent='Arrived';$('ninstr').textContent=to.name;$('nthen').textContent=`${(stats.dist/1000).toFixed(1)} km in ${fmtT((Date.now()-stats.t0)/1000)}`;stopRide(true)}
 
 // ---------- ride start / stop ----------
 $('goBtn').onclick=()=>riding?stopRide():startRide();

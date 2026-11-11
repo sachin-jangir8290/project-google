@@ -54,7 +54,7 @@ function eyeFrame(preds){const rear=EYE.mode==='rear',v=$('cam'),c=$('boxes'),W=
  renderAround(items,threat);radar(threat);
  // alerts
  const worst=['center','left','right'].map(z=>({z,...threat[z]})).filter(t=>t.level===2).sort((a,b)=>a.near.d-b.near.d)[0];
- $('warn').hidden=!worst;if(worst){$('warn').textContent=rear?`⚠ ${worst.z==='center'?'Vehicle close behind':'Vehicle on your '+worst.z}`:'⚠ Vehicle close ahead';
+ $('warn').hidden=!worst;if(worst){$('warn').innerHTML=ic('warn')+(rear?(worst.z==='center'?'Vehicle close behind':'Vehicle on your '+worst.z):'Vehicle close ahead');
   if(now-(EYE.lastWarn[worst.z]||0)>4000){EYE.lastWarn[worst.z]=now;const n=VCLS[worst.near.class].n;
    say(rear?(worst.z==='center'?`${n} close behind you`:`${n} approaching on your ${worst.z}`):(worst.z==='center'?`${n} close ahead`:`${n} very close on your ${worst.z}`));if(navigator.vibrate)navigator.vibrate([200,100,200])}}}
 function renderAround(items,threat){const cnt={};VORDER.forEach(k=>cnt[k]=0);items.forEach(i=>cnt[i.class]++);
@@ -87,7 +87,7 @@ function speedUI(){const lim=SPD.limit||OPT.max,v=Math.round(stats.speed*3.6);$(
 
 // ================= hazards along the route =================
 const HZ={items:[],layer:L.layerGroup().addTo(map),help:[],helpLayer:L.layerGroup().addTo(map)};
-const HZT={bump:{e:'⚠️',n:'Speed breakers',say:'Speed breaker ahead'},school:{e:'🚸',n:'School zones',say:'School zone ahead. Slow down'},camera:{e:'📷',n:'Speed cameras',say:'Speed camera ahead'},signal:{e:'🚦',n:'Traffic signals',say:null},curve:{e:'↪️',n:'Sharp curves',say:'Sharp curve ahead. Slow down'},jam:{e:'🚗',n:'Traffic jams',say:'Traffic jam ahead'},closure:{e:'⛔',n:'Road closures',say:'Road closed ahead'},works:{e:'🚧',n:'Road works',say:'Road works ahead. Slow down'},crossing:{e:'🚶',n:'Zebra crossings',say:null}};
+const HZT={bump:{e:'bump',n:'Speed breakers',say:'Speed breaker ahead'},school:{e:'school',n:'School zones',say:'School zone ahead. Slow down'},camera:{e:'camera',n:'Speed cameras',say:'Speed camera ahead'},signal:{e:'signal',n:'Traffic signals',say:null},curve:{e:'curve',n:'Sharp curves',say:'Sharp curve ahead. Slow down'},jam:{e:'jam',n:'Traffic jams',say:'Traffic jam ahead'},closure:{e:'closure',n:'Road closures',say:'Road closed ahead'},works:{e:'works',n:'Road works',say:'Road works ahead. Slow down'},crossing:{e:'crossing',n:'Zebra crossings',say:null}};
 async function loadHazards(){HZ.items=[];HZ.layer.clearLayers();if(!route)return;
  // sharp curves from the route shape (not at a planned turn)
  const co=route.co,cum=route.cum;let j=0;
@@ -106,19 +106,19 @@ async function loadHazards(){HZ.items=[];HZ.layer.clearLayers();if(!route)return
 function hazCount(){return HZ.items.filter(h=>h.t!=='crossing'&&h.t!=='signal').length}
 function alongOf(ll){let best=1e12,bi=-1;for(let i=0;i<route.co.length;i++){const d=hav(route.co[i],ll);if(d<best){best=d;bi=i}}return best<250?route.cum[bi]:null}
 function renderHaz(){$('sumHaz').textContent=hazCount();const cnt={};HZ.items.forEach(h=>cnt[h.t]=(cnt[h.t]||0)+1);
- const keys=Object.keys(HZT).filter(k=>cnt[k]);$('hazGrid').innerHTML=keys.length?keys.map(k=>`<div><em>${HZT[k].e}</em><span><b>${cnt[k]}</b><br><small>${HZT[k].n}</small></span></div>`).join(''):'<p class="hint">No hazards found on this route.</p>';drawHaz()}
-function drawHaz(){HZ.layer.clearLayers();if(!OPT.haz)return;HZ.items.filter(h=>h.t!=='crossing').forEach(h=>L.marker(h.ll,{icon:L.divIcon({className:'',html:`<div class="hz ${h.t==='camera'?'cam':''}" title="${HZT[h.t].n}">${HZT[h.t].e}</div>`,iconSize:[28,28],iconAnchor:[14,14]}),interactive:false}).addTo(HZ.layer))}
-function hazAhead(along){if(!OPT.haz)return;for(const h of HZ.items){const d=h.cum-along;const range=h.t==='school'?250:/jam|closure|works/.test(h.t)?600:150;if(d<0||d>range||h.said||!HZT[h.t].say)continue;h.said=1;say(HZT[h.t].say+(h.delay>=60?`, about ${Math.round(h.delay/60)} minutes delay`:''));toast(`${HZT[h.t].e} ${HZT[h.t].say} — ${Math.round(d/10)*10} m`);break}}
+ const keys=Object.keys(HZT).filter(k=>cnt[k]);$('hazGrid').innerHTML=keys.length?keys.map(k=>`<div><em class="hzi hz-${k}">${ic(HZT[k].e)}</em><span><b>${cnt[k]}</b><br><small>${HZT[k].n}</small></span></div>`).join(''):'<p class="hint">No hazards found on this route.</p>';drawHaz()}
+function drawHaz(){HZ.layer.clearLayers();if(!OPT.haz)return;HZ.items.filter(h=>h.t!=='crossing').forEach(h=>L.marker(h.ll,{icon:L.divIcon({className:'',html:`<div class="hz ${h.t==='camera'?'cam':''}" title="${HZT[h.t].n}">${ic(HZT[h.t].e)}</div>`,iconSize:[28,28],iconAnchor:[14,14]}),interactive:false}).addTo(HZ.layer))}
+function hazAhead(along){if(!OPT.haz)return;for(const h of HZ.items){const d=h.cum-along;const range=h.t==='school'?250:/jam|closure|works/.test(h.t)?600:150;if(d<0||d>range||h.said||!HZT[h.t].say)continue;h.said=1;say(HZT[h.t].say+(h.delay>=60?`, about ${Math.round(h.delay/60)} minutes delay`:''));toast(`${HZT[h.t].say} — ${Math.round(d/10)*10} m`);break}}
 
 // ================= nearby help =================
 let helpQ=0;
 async function loadHelp(){if(!me||Date.now()-helpQ<120000)return;helpQ=Date.now();
  try{const r=await overpass(`[out:json][timeout:15];(nwr(around:6000,${me[0]},${me[1]})[amenity~"^(hospital|clinic)$"];nwr(around:6000,${me[0]},${me[1]})[amenity=fuel];nwr(around:6000,${me[0]},${me[1]})[amenity=police];);out center 80;`);
-  const map2={hospital:['🏥','Hospital'],clinic:['🏥','Clinic'],fuel:['⛽','Fuel'],police:['👮','Police']};
+  const map2={hospital:['hospital','Hospital'],clinic:['hospital','Clinic'],fuel:['fuel','Fuel'],police:['police','Police']};
   HZ.help=(r.elements||[]).map(e=>{const ll=[e.lat||e.center.lat,e.lon||e.center.lon],a=e.tags.amenity;return {ll,a,e:map2[a][0],kind:map2[a][1],name:e.tags.name||map2[a][1],d:hav(me,ll)}}).sort((a,b)=>a.d-b.d);
   const pick=[...HZ.help.filter(h=>h.a==='hospital'||h.a==='clinic').slice(0,2),...HZ.help.filter(h=>h.a==='fuel').slice(0,2),...HZ.help.filter(h=>h.a==='police').slice(0,1)];
-  $('helpList').innerHTML=pick.length?pick.map((h,i)=>`<li data-i="${HZ.help.indexOf(h)}"><i>${h.e}</i><span>${h.name}</span><small>${fmtD(h.d)}</small></li>`).join(''):'<li class="empty">Nothing found within 6 km.</li>';
-  HZ.helpLayer.clearLayers();pick.forEach(h=>L.marker(h.ll,{icon:L.divIcon({className:'',html:`<div class="hz help">${h.e}</div>`,iconSize:[28,28],iconAnchor:[14,14]}),title:h.name}).addTo(HZ.helpLayer));
+  $('helpList').innerHTML=pick.length?pick.map((h,i)=>`<li data-i="${HZ.help.indexOf(h)}"><i class="hi-${h.e}">${ic(h.e)}</i><span>${h.name}</span><small>${fmtD(h.d)}</small></li>`).join(''):'<li class="empty">Nothing found within 6 km.</li>';
+  HZ.helpLayer.clearLayers();pick.forEach(h=>L.marker(h.ll,{icon:L.divIcon({className:'',html:`<div class="hz help hi-${h.e}">${ic(h.e)}</div>`,iconSize:[28,28],iconAnchor:[14,14]}),title:h.name}).addTo(HZ.helpLayer));
   const hosp=HZ.help.find(h=>h.a==='hospital'||h.a==='clinic');$('sosHospD').textContent=hosp?`${hosp.name} · ${fmtD(hosp.d)}`:'none nearby'}
  catch(_){$('helpList').innerHTML='<li class="empty">Could not load nearby places. Try again later.</li>';helpQ=0}}
 $('helpList').onclick=e=>{const li=e.target.closest('li[data-i]');if(!li)return;goTo(HZ.help[+li.dataset.i])};
@@ -155,7 +155,7 @@ window.addEventListener('devicemotion',e=>{if(!riding||!OPT.crash||!$('sos').hid
 async function motionPermission(){try{if(typeof DeviceMotionEvent!=='undefined'&&DeviceMotionEvent.requestPermission)await DeviceMotionEvent.requestPermission()}catch(_){}}
 
 // ================= break reminder =================
-let restAt=0;setInterval(()=>{if(!riding||!OPT.rest)return;const h=(Date.now()-stats.t0)/3600000;if(h>=2*(restAt+1)){restAt++;say(`You have been riding for ${2*restAt} hours. Take a short break and drink water.`);toast('☕ Time for a short break')}},60000);
+let restAt=0;setInterval(()=>{if(!riding||!OPT.rest)return;const h=(Date.now()-stats.t0)/3600000;if(h>=2*(restAt+1)){restAt++;say(`You have been riding for ${2*restAt} hours. Take a short break and drink water.`);toast('Time for a short break')}},60000);
 
 // ================= hooks from the navigator =================
 window.SAFE={
@@ -171,13 +171,14 @@ function greet(){const n=SET.get('rname','')||'Rider';$('hello').textContent=`He
 $('riderName').value=SET.get('rname','');$('riderName').oninput=e=>{SET.set('rname',e.target.value.trim());greet()};greet();
 $('avatarBtn').onclick=()=>{if(isPhone())openSheet('safety');setTimeout(()=>$('riderName').focus(),200)};
 function rememberTrip(){if(!to)return;const l=(store.get('trips')||[]).filter(t=>t.name!==to.name);l.unshift(to);store.set('trips',l.slice(0,5));lastChip()}
-function lastChip(){const l=store.get('trips')||[],t=l.find(t=>!to||t.name!==to.name);$('qLast').hidden=!t;if(t)$('qLast').textContent='↺ '+t.name.slice(0,18)}
+function lastChip(){const l=store.get('trips')||[],t=l.find(t=>!to||t.name!==to.name);$('qLast').hidden=!t;if(t)$('qLast').innerHTML=ic('history')+esc2(t.name.slice(0,18))}
 lastChip();
+document.querySelectorAll('#qchips [data-i]').forEach(b=>b.insertAdjacentHTML('afterbegin',ic(b.dataset.i)));
 $('qchips').onclick=async e=>{const b=e.target.closest('button');if(!b)return;const q=b.dataset.q;
  if(q==='last'){const l=store.get('trips')||[],t=l.find(t=>!to||t.name!==to.name);if(t){to=t;store.set('to',to);$('to').value=t.name;from=null;plan()}return}
  if(!me){startWatch();toast('Finding your location first…');return}
  if(!HZ.help.length){helpQ=0;toast('Searching nearby…');await loadHelp()}
- const h=HZ.help.find(h=>q==='hospital'?(h.a==='hospital'||h.a==='clinic'):h.a===q);if(h){toast(`${h.e} ${h.name} · ${fmtD(h.d)}`);goTo(h)}else toast('Nothing found nearby')};
+ const h=HZ.help.find(h=>q==='hospital'?(h.a==='hospital'||h.a==='clinic'):h.a===q);if(h){toast(`${h.name} · ${fmtD(h.d)}`);goTo(h)}else toast('Nothing found nearby')};
 function rideToggle(){riding?stopRide():(rememberTrip(),startRide())}
 $('startPill').onclick=rideToggle;$('rideGo').onclick=rideToggle;$('emergBtn').onclick=()=>openSOS(false);
 // compass dial

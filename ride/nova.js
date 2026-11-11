@@ -122,7 +122,7 @@ async function ask(q){q=String(q||'').trim();if(!q||NOVA.busy)return;NOVA.busy=t
   if(it){ans=await it.run(L,q);src='Nova · from the map'}
   else{if(NOVA.url){const r=await askApi(q,lang);if(typeof r==='string'){ans=r;src='Your Nova AI'}else if(r&&r.error)err='Nova AI: '+r.error}
    if(!ans&&gemKey()){const r=await askGemini(q,lang);if(typeof r==='string'){ans=r;src='Gemini AI · with live map data'}else if(r&&r.error)err=(err?err+' · ':'')+'Gemini: '+r.error}
-   if(!ans&&err){const it2=INTENTS.find(i=>i.re.test(q));ans=it2?await it2.run(L,q):L(`I couldn't reach the AI (${err}).`,`AI से जुड़ नहीं पाई (${err})।`);src=it2?`⚠ ${err} — answered from the map`:''}}
+   if(!ans&&err){const it2=INTENTS.find(i=>i.re.test(q));ans=it2?await it2.run(L,q):L(`I couldn't reach the AI (${err}).`,`AI से जुड़ नहीं पाई (${err})।`);src=it2?`Error: ${err} — answered from the map`:''}}
   if(!ans){ans=L("I didn't catch that. Try: what's ahead, next turn, ETA, traffic, speed, weather, or nearest petrol pump.",'समझ नहीं पाई। पूछें: आगे क्या है, अगला मोड़, कब पहुंचूंगा, ट्रैफिक, स्पीड, मौसम या पास का पेट्रोल पंप।')}}
  catch(e){ans=L('Something went wrong. Please try again.','कुछ गड़बड़ हुई, फिर से पूछें।')}
  clearTimeout(wake);wait.remove();document.body.classList.remove('novathink');bubble('ai',ans,src);say(ans,lang==='hi'?'hi-IN':'en-IN',true);NOVA.busy=false}
@@ -141,7 +141,7 @@ $('novaSave').onclick=()=>{const u=$('novaUrl').value.trim();if(u&&!/^https:\/\/
  NOVA.url=u;SET.set('novaUrl',u);if($('novaTok').value){NOVA.tok=$('novaTok').value.trim();SET.set('novaTok',NOVA.tok);$('novaTok').value='';$('novaTok').placeholder='Token saved ••••'}
  NOVA.all=$('novaAll').checked;SET.set('novaAll',NOVA.all);if($('gemKey').value){SET.set('gemKey',$('gemKey').value.trim());$('gemKey').value=''}SET.set('gemModel',$('gemModel').value.trim());gemUI();NOVA.upd=$('novaUpd').checked;SET.set('novaUpd',NOVA.upd);toast('Nova settings saved');$('novaSettings').hidden=true};
 $('novaTest').onclick=async()=>{toast('Testing… free servers may take up to a minute to wake');if(gemKey()&&!$('novaUrl').value.trim()){toast('Testing Gemini…');const g=await askGemini('Say hello to the rider in one short sentence.','en');toast(typeof g==='string'?'Gemini connected: '+g.slice(0,80):'Gemini error: '+(g&&g.error));return}const u=$('novaUrl').value.trim()||NOVA.url;if(!u){toast('Add your Nova AI address first');return}const old=NOVA.url;NOVA.url=u;const r=await askApi('Say hello in one short sentence.','en');NOVA.url=old;
- bubble('ai',r&&typeof r==='string'?'✅ Connected to your Nova AI: '+r.slice(0,160):'❌ Could not connect: '+(r&&r.error||'no answer'),'Connection test');openNova()};
+ bubble('ai',r&&typeof r==='string'?'Connected to your Nova AI: '+r.slice(0,160):'Could not connect: '+(r&&r.error||'no answer'),'Connection test');openNova()};
 // ---------- voice input ----------
 const SRec=window.SpeechRecognition||window.webkitSpeechRecognition;
 function listen(){const lang=NOVA.lang==='en'?'en-IN':'hi-IN';

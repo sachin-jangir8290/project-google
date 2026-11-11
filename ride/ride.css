@@ -415,3 +415,51 @@ body.novaon .novaorb{display:none}
  body.sheet:not(.sheetmin) .novaorb{bottom:auto;top:calc(64px + var(--st))}body.riding .novaorb,body:has(.next:not([hidden])) .novaorb{top:auto;bottom:calc(150px + var(--sb))}
  .nova{left:8px;right:8px;width:auto;bottom:8px;max-height:calc(100vh - 80px)}}
 body.eyeon .novaorb,body.placeon .novaorb{display:none}
+
+/* ===================== SVG icon system ===================== */
+.ri{width:18px;height:18px;flex:none;display:inline-block;vertical-align:-3px}
+.leaflet-pane .ri{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2}
+.hz{color:#ffb020}.hz.cam{color:#ff6b6b}.hz.help{color:#7cc4ff}
+.hz.hi-fuel{color:#d6f53f}.hz.hi-hospital{color:#ff7a7a}.hz.hi-police{color:#7cc4ff}
+.hgrid em.hzi{display:grid;place-items:center;width:36px;height:36px;border-radius:12px;background:rgba(255,176,32,.14);color:#ffb020}
+.hgrid em.hz-camera,.hgrid em.hz-closure{background:rgba(255,77,79,.15);color:#ff7a7a}.hgrid em.hz-jam{background:rgba(255,138,0,.15);color:#ff9d2e}
+.hgrid em .ri{width:20px;height:20px}
+.hl li i{color:var(--lime)}.hl li i.hi-hospital{color:#ff7a7a}.hl li i.hi-police{color:#7cc4ff}.hl li i .ri{width:18px;height:18px}
+.qchips button{display:inline-flex;align-items:center;gap:7px}.qchips button .ri{width:16px;height:16px}
+.qchips button[data-i=hospital] .ri{color:#ff7a7a}.qchips button[data-i=police] .ri{color:#7cc4ff}
+.meta .ri{width:15px;height:15px;margin-right:5px;color:var(--lime);vertical-align:-2px}
+.warn{display:flex;align-items:center;gap:10px}.warn .ri{width:26px;height:26px;stroke-width:2.6}
+
+/* ===================== ride style ===================== */
+.rstyle{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}
+.rstyle button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:9px 4px;border:1px solid var(--bd);border-radius:14px;background:var(--glass2);color:var(--mu);font-size:11px;font-weight:700}
+.rstyle button .ri{width:20px;height:20px}.rstyle button.on{border-color:var(--lime);color:var(--lime);background:rgba(214,245,63,.08)}
+/* ===================== glance mode ===================== */
+.glbtn{display:flex;flex-direction:column;align-items:center;width:100%;margin-top:10px;border:1px solid var(--bd);border-radius:18px;background:rgba(255,255,255,.04);color:var(--tx);font:inherit;font-weight:700;font-size:15px;padding:11px}
+.glbtn small{color:var(--mu);font-weight:500;font-size:11px}
+.glance{position:fixed;inset:0;z-index:45;background:#050805;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vh;padding:calc(20px + var(--st)) 20px calc(20px + var(--sb));text-align:center;cursor:pointer}
+.gtop{position:absolute;top:calc(18px + var(--st));left:24px;right:24px;display:flex;justify-content:space-between;color:#9aa69a;font-size:clamp(16px,4vw,26px);font-weight:700}
+.garrow{display:grid;place-items:center;width:min(52vw,46vh);aspect-ratio:1;border-radius:22%;background:var(--lime);color:#050805}
+.garrow svg{width:72%;height:72%;stroke-width:2.6}
+.gdist{font-size:clamp(56px,16vw,140px);line-height:1;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.ginstr{margin:0;font-size:clamp(20px,5.5vw,40px);font-weight:600;max-width:90vw}
+.gbot{display:flex;align-items:center;gap:20px;margin-top:1vh}
+.glim{display:grid;place-items:center;width:clamp(64px,16vw,110px);aspect-ratio:1;border-radius:50%;background:#fff;border:clamp(7px,1.8vw,12px) solid #e53935;color:#111}.glim b{font-size:clamp(22px,6vw,40px);font-weight:800}
+.gspd{display:flex;flex-direction:column;align-items:flex-start}.gspd b{font-size:clamp(48px,13vw,110px);line-height:1;font-weight:800;font-variant-numeric:tabular-nums}.gspd small{color:#9aa69a;font-size:clamp(14px,3.5vw,22px)}
+.glance.over .gspd b{color:#ff5a5a}.glance.soon .garrow{animation:blink .5s infinite alternate}
+.gexit{position:absolute;bottom:calc(14px + var(--sb));color:#5f6a5f;font-size:13px}
+@media (orientation:landscape) and (max-height:600px){.glance{flex-direction:row;flex-wrap:wrap;gap:3vw}.garrow{width:38vh}}
+/* ===================== ride score ===================== */
+.sgauge{position:relative;width:150px;margin:6px auto 12px}.sgauge svg{width:100%;transform:rotate(-90deg)}
+.sgauge circle{fill:none;stroke-width:10}.sgauge .trk{stroke:rgba(255,255,255,.08)}.sgauge .val{stroke:var(--lime);stroke-linecap:round;stroke-dasharray:314.16;stroke-dashoffset:314.16;transition:stroke-dashoffset .8s,stroke .4s}
+.sgauge>div{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}.sgauge b{font-size:40px;font-weight:800;line-height:1}.sgauge small{color:var(--mu);font-size:12px;margin-top:4px;text-align:center;max-width:100px}
+.sgauge.big{width:190px}.sgauge.big b{font-size:56px}
+.sfac{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.sfac div{background:rgba(255,255,255,.05);border-radius:14px;padding:10px 8px;text-align:center}
+.sfac .ri{width:18px;height:18px;color:var(--lime)}.sfac b{display:block;font-size:18px;margin-top:4px}.sfac small{color:var(--mu);font-size:11px}
+.sfac div.bad .ri,.sfac div.bad b{color:#ff8a8a}
+.scorepop{position:fixed;inset:0;z-index:42;background:rgba(5,8,5,.82);backdrop-filter:blur(6px);display:grid;place-items:center;padding:16px}
+.spbox{width:100%;max-width:420px;background:#111511;border:1px solid rgba(214,245,63,.2);border-radius:28px;padding:22px;text-align:center}
+.spbox h3{margin:2px 0 4px;font-size:26px}.stips{list-style:none;text-align:left;margin:14px 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.stips li{display:flex;gap:10px;font-size:14px;color:#d8e0d4;line-height:1.4}.stips li .ri{color:var(--lime);margin-top:2px}
+.hlist .scp{font-style:normal;font-size:11px;font-weight:800;padding:2px 7px;border-radius:999px;background:rgba(214,245,63,.15);color:var(--lime);margin-left:6px}
+.sgauge svg{width:100%;height:auto;aspect-ratio:1;display:block;stroke:none;fill:none}.sgauge circle{fill:none}

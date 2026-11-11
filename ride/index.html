@@ -60,8 +60,9 @@
   <div class="field"><span class="dot a"></span><input id="from" placeholder="Start: My location" autocomplete="off"><button class="mini" id="useLoc" title="Use my location"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button></div>
   <div class="field"><span class="dot b"></span><input id="to" placeholder="Destination" autocomplete="off"></div>
   <ul class="sugg" id="sugg" hidden></ul>
-  <div class="qchips" id="qchips"><button data-q="fuel">⛽ Fuel</button><button data-q="hospital">🏥 Hospital</button><button data-q="police">👮 Police</button><button data-q="last" id="qLast" hidden>↺ Last trip</button></div>
+  <div class="qchips" id="qchips"><button data-q="fuel" data-i="fuel">Fuel</button><button data-q="hospital" data-i="hospital">Hospital</button><button data-q="police" data-i="police">Police</button><button data-q="last" id="qLast" hidden>Last trip</button></div>
   <div class="seg" id="profile"><button data-p="car" class="on">Motorbike</button><button data-p="bike">Cycle</button></div>
+  <div class="rstyle" id="rstyle"><button data-s="fastest" class="on" data-i="fast">Fastest</button><button data-s="twisty" data-i="twisty">Twisty</button><button data-s="nohighway" data-i="nohighway">No highway</button><button data-s="notoll" data-i="notoll">No toll</button></div>
   <p class="hint">Tip: long-press / right-click the map to set a destination.</p>
  </section>
 
@@ -134,6 +135,7 @@
   <div class="compass" id="compass"><svg id="dial" viewBox="0 0 220 220" aria-hidden="true"></svg><div class="ccenter"><b id="hdg">0°</b><small id="hdgDir">N</small></div><span class="cl n">N</span><span class="cl e">E</span><span class="cl s">S</span><span class="cl w">W</span></div>
   <div class="tiles sm"><div><small>Speed</small><b><span id="rdSpd">0</span> <u>km/h</u></b></div><div><small id="rdLimL">Speed alert</small><b><span id="rdLim">60</span> <u>km/h</u></b></div></div>
   <button class="startpill" id="rideGo">Start ride <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+  <button class="glbtn" id="glanceBtn">Glance mode<small>Big arrow for a quick look from the helmet</small></button>
   <button class="emerg" id="emergBtn"><svg viewBox="0 0 24 24"><path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1zM16 8a5 5 0 0 1 0 8M19 5a9 9 0 0 1 0 14"/></svg>Emergency alert</button>
  </section>
 
@@ -159,6 +161,12 @@
   <div class="elab" id="elab"><span>Start</span><span>Finish</span></div>
   <svg id="elevSvg" viewBox="0 0 300 90" preserveAspectRatio="none"></svg>
   <div class="trio"><div><small>Distance</small><b id="rDist">—</b></div><div><small>Ride time</small><b id="rTime">—</b></div><div><small>Climb</small><b id="rClimb">—</b></div></div>
+ </section>
+
+ <section class="card scorec" data-sheet="stats">
+  <h2 id="scoreH">Ride score</h2>
+  <div class="sgauge"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" class="trk"/><circle cx="60" cy="60" r="50" class="val" id="scoreArc"/></svg><div><b id="scoreV">—</b><small id="scoreL">Start a ride</small></div></div>
+  <div class="sfac" id="scoreFac"></div>
  </section>
 
  <section class="card hist" data-sheet="stats">
@@ -226,7 +234,7 @@
    <p class="eyenote" id="eyeNote">Loading vehicle detector…</p>
   </section>
  </div>
- <div class="warn" id="warn" hidden>⚠ Vehicle close ahead</div>
+ <div class="warn" id="warn" hidden>Vehicle close ahead</div>
  <button class="eyeclose" id="eyeClose">Close camera</button>
 </div>
 <div class="radar" id="radar" hidden>
@@ -283,12 +291,29 @@
  <div class="nchips" id="novaChips"></div>
  <form class="ninput" id="novaForm"><button type="button" class="nmic" id="novaMic" aria-label="Speak"><svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v4"/></svg></button><input id="novaQ" placeholder="Ask Nova… e.g. aage kya hai?" autocomplete="off"><button class="nsend" aria-label="Send"><svg viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></svg></button></form>
 </section>
+<div class="glance" id="glance" hidden>
+ <div class="gtop"><span id="glTime">—</span><span id="glEta">—</span></div>
+ <div class="garrow" id="glIcon"></div>
+ <b class="gdist" id="glDist">—</b>
+ <p class="ginstr" id="glInstr">—</p>
+ <div class="gbot"><div class="glim" id="glLimWrap"><b id="glLim">60</b></div><div class="gspd"><b id="glSpd">0</b><small>km/h</small></div></div>
+ <small class="gexit">Tap anywhere to close</small>
+</div>
+<div class="scorepop" id="scorePop" hidden><div class="spbox">
+ <small class="eyebrow">Ride finished</small><h3 id="spTitle">Smooth Rider</h3>
+ <div class="sgauge big"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" class="trk"/><circle cx="60" cy="60" r="50" class="val" id="spArc"/></svg><div><b id="spV">—</b><small>/ 100</small></div></div>
+ <div class="sfac" id="spFac"></div>
+ <ul class="stips" id="spTips"></ul>
+ <button class="startpill" id="spOk">Done</button>
+</div></div>
 <div id="toast"></div>
 <script src="config.js"></script>
+<script src="icons.js"></script>
 <script src="ride.js"></script>
 <script src="safety.js"></script>
 <script src="features.js"></script>
 <script src="traffic.js"></script>
 <script src="nova.js"></script>
+<script src="extras.js"></script>
 </body>
 </html>
