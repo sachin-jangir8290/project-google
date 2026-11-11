@@ -31,6 +31,15 @@ jobs:
           mkdir -p android/app/src/main/assets
           rm -rf android/app/src/main/assets/ride
           cp -r ride android/app/src/main/assets/ride
+          # Put the TomTom key from the repository secret into the app (never stored in git)
+          if [ -n "$TOMTOM_API_KEY" ]; then
+            printf "window.RIDE_CONFIG = { tomtomKey: '%s' };\n" "$TOMTOM_API_KEY" > android/app/src/main/assets/ride/config.js
+            echo "TomTom key added from secret"
+          else
+            echo "No TOMTOM_API_KEY secret: users can add a key in the app"
+          fi
+        env:
+          TOMTOM_API_KEY: ${{ secrets.TOMTOM_API_KEY }}
 
       - name: Build APK
         run: gradle -p android assembleRelease --no-daemon --stacktrace

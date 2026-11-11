@@ -100,6 +100,8 @@
   <label class="tog"><span><b>Hazard warnings</b><small>Speed breakers, schools, cameras, sharp curves</small></span><input type="checkbox" id="optHaz" checked><i></i></label>
   <label class="tog"><span><b>Rain radar on map</b><small>Live rain from the last 2 hours</small></span><input type="checkbox" id="optRain"><i></i></label>
   <label class="tog"><span><b>Break reminder</b><small>Every 2 hours of riding</small></span><input type="checkbox" id="optRest" checked><i></i></label>
+  <label class="tog"><span><b>Live traffic (TomTom)</b><small id="ttState">Add your TomTom key below</small></span><input type="checkbox" id="optTraffic" checked><i></i></label>
+  <div class="keyrow"><input id="ttKeyIn" type="password" placeholder="TomTom API key" autocomplete="off" spellcheck="false"><button id="ttKeySave">Save</button></div>
   <div class="row2"><span><b>My speed alert</b><small>Used when the road has no speed limit data</small></span><select id="optMax"><option>40</option><option>50</option><option selected>60</option><option>80</option><option>100</option></select></div>
  </section>
 
@@ -261,8 +263,10 @@
 </div>
 <div class="bubbles" id="bubbles" hidden></div>
 <div id="toast"></div>
+<script src="config.js"></script>
 <script src="ride.js"></script>
 <script src="safety.js"></script>
 <script src="features.js"></script>
+<script src="traffic.js"></script>
 </body>
 </html>

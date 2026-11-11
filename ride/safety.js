@@ -87,13 +87,14 @@ function speedUI(){const lim=SPD.limit||OPT.max,v=Math.round(stats.speed*3.6);$(
 
 // ================= hazards along the route =================
 const HZ={items:[],layer:L.layerGroup().addTo(map),help:[],helpLayer:L.layerGroup().addTo(map)};
-const HZT={bump:{e:'⚠️',n:'Speed breakers',say:'Speed breaker ahead'},school:{e:'🚸',n:'School zones',say:'School zone ahead. Slow down'},camera:{e:'📷',n:'Speed cameras',say:'Speed camera ahead'},signal:{e:'🚦',n:'Traffic signals',say:null},curve:{e:'↪️',n:'Sharp curves',say:'Sharp curve ahead. Slow down'},crossing:{e:'🚶',n:'Zebra crossings',say:null}};
+const HZT={bump:{e:'⚠️',n:'Speed breakers',say:'Speed breaker ahead'},school:{e:'🚸',n:'School zones',say:'School zone ahead. Slow down'},camera:{e:'📷',n:'Speed cameras',say:'Speed camera ahead'},signal:{e:'🚦',n:'Traffic signals',say:null},curve:{e:'↪️',n:'Sharp curves',say:'Sharp curve ahead. Slow down'},jam:{e:'🚗',n:'Traffic jams',say:'Traffic jam ahead'},closure:{e:'⛔',n:'Road closures',say:'Road closed ahead'},works:{e:'🚧',n:'Road works',say:'Road works ahead. Slow down'},crossing:{e:'🚶',n:'Zebra crossings',say:null}};
 async function loadHazards(){HZ.items=[];HZ.layer.clearLayers();if(!route)return;
  // sharp curves from the route shape (not at a planned turn)
  const co=route.co,cum=route.cum;let j=0;
  for(let i=0;i<co.length;i++){while(j<co.length-1&&cum[j]<cum[i]+35)j++;let k=i;while(k>0&&cum[i]-cum[k]<35)k--;if(j<=i||k>=i)continue;
   const b1=bearing(co[k],co[i]),b2=bearing(co[i],co[j]),turn=Math.abs(((b2-b1+540)%360)-180);
   if(turn>65&&!route.steps.some(s=>Math.abs(s.cum-cum[i])<60)&&!HZ.items.some(h=>h.t==='curve'&&Math.abs(h.cum-cum[i])<150))HZ.items.push({t:'curve',ll:co[i],cum:cum[i]})}
+ (route.traffic||[]).forEach(t=>HZ.items.push({t:t.cat==='ROAD_CLOSURE'?'closure':t.cat==='ROAD_WORK'?'works':'jam',ll:co[t.s]||co[0],cum:t.cum,delay:t.delay,len:t.len}));
  renderHaz();
  const step=Math.max(1,Math.ceil(co.length/120)),pts=co.filter((_,i)=>i%step===0).concat([co[co.length-1]]).map(p=>p[0].toFixed(5)+','+p[1].toFixed(5)).join(',');
  try{const q=`[out:json][timeout:20];(node(around:30,${pts})[traffic_calming];node(around:30,${pts})[highway=speed_camera];node(around:30,${pts})[highway=traffic_signals];node(around:30,${pts})[highway=crossing][crossing=zebra];nwr(around:150,${pts})[amenity=school];);out center 300;`;
@@ -107,7 +108,7 @@ function alongOf(ll){let best=1e12,bi=-1;for(let i=0;i<route.co.length;i++){cons
 function renderHaz(){$('sumHaz').textContent=hazCount();const cnt={};HZ.items.forEach(h=>cnt[h.t]=(cnt[h.t]||0)+1);
  const keys=Object.keys(HZT).filter(k=>cnt[k]);$('hazGrid').innerHTML=keys.length?keys.map(k=>`<div><em>${HZT[k].e}</em><span><b>${cnt[k]}</b><br><small>${HZT[k].n}</small></span></div>`).join(''):'<p class="hint">No hazards found on this route.</p>';drawHaz()}
 function drawHaz(){HZ.layer.clearLayers();if(!OPT.haz)return;HZ.items.filter(h=>h.t!=='crossing').forEach(h=>L.marker(h.ll,{icon:L.divIcon({className:'',html:`<div class="hz ${h.t==='camera'?'cam':''}" title="${HZT[h.t].n}">${HZT[h.t].e}</div>`,iconSize:[28,28],iconAnchor:[14,14]}),interactive:false}).addTo(HZ.layer))}
-function hazAhead(along){if(!OPT.haz)return;for(const h of HZ.items){const d=h.cum-along;if(d<0||d>(h.t==='school'?250:150)||h.said||!HZT[h.t].say)continue;h.said=1;say(HZT[h.t].say);toast(`${HZT[h.t].e} ${HZT[h.t].say} — ${Math.round(d/10)*10} m`);break}}
+function hazAhead(along){if(!OPT.haz)return;for(const h of HZ.items){const d=h.cum-along;const range=h.t==='school'?250:/jam|closure|works/.test(h.t)?600:150;if(d<0||d>range||h.said||!HZT[h.t].say)continue;h.said=1;say(HZT[h.t].say+(h.delay>=60?`, about ${Math.round(h.delay/60)} minutes delay`:''));toast(`${HZT[h.t].e} ${HZT[h.t].say} — ${Math.round(d/10)*10} m`);break}}
 
 // ================= nearby help =================
 let helpQ=0;

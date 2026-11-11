@@ -138,12 +138,34 @@ if(to){$('to').value=to.name;$('destTitle').textContent=to.name}
 // ---------- routing ----------
 async function plan(opts={}){if(!to)return;const a=opts.from||(from?[from.lat,from.lng]:me);if(!a){startWatch();toast('Turn on location, or type a start point');return}
  $('statusChip').textContent=opts.reroute?'Re-routing…':'Finding route…';
- try{const url=`https://routing.openstreetmap.de/routed-${profile}/route/v1/driving/${a[1]},${a[0]};${to.lng},${to.lat}?overview=full&geometries=geojson&steps=true&alternatives=false`;
-  const j=await (await fetch(url)).json();if(j.code!=='Ok'||!j.routes||!j.routes.length)throw new Error(j.message||'No route');
-  build(j.routes[0]);route.start=a;draw(!opts.reroute);weather();elevation();window.SAFE&&SAFE.onRoute();rerouting=false;offCount=0;
+ try{let src='osrm';
+  if(ttKey()){try{await ttRoute(a);src='tomtom'}catch(e){console.warn('TomTom routing failed, using OSRM',e)}}
+  if(src==='osrm'){const url=`https://routing.openstreetmap.de/routed-${profile}/route/v1/driving/${a[1]},${a[0]};${to.lng},${to.lat}?overview=full&geometries=geojson&steps=true&alternatives=false`;
+   const j=await (await fetch(url)).json();if(j.code!=='Ok'||!j.routes||!j.routes.length)throw new Error(j.message||'No route');build(j.routes[0])}
+  route.src=src;route.start=a;draw(!opts.reroute);weather();elevation();window.SAFE&&SAFE.onRoute();rerouting=false;offCount=0;
   $('statusChip').textContent=riding?'Navigating':'Route ready';$('destTitle').textContent=to.name;$('demoBtn').hidden=riding;
   if(opts.reroute)say('Route recalculated')}
  catch(e){rerouting=false;$('statusChip').textContent='No route';toast('Could not find a route. Check your connection or try another place.')}}
+// ---------- TomTom routing (live traffic, motorcycle mode) ----------
+// Key comes from the phone (Safety tab) or from config.js generated at build time; it is never stored in the code.
+const ttKey=()=>{try{const k=JSON.parse(localStorage.getItem('rl_s_ttkey')||'null');if(k)return k}catch(_){}return (window.RIDE_CONFIG&&RIDE_CONFIG.tomtomKey)||''};
+const TTM={TURN_LEFT:'left',TURN_RIGHT:'right',SHARP_LEFT:'sharp left',SHARP_RIGHT:'sharp right',BEAR_LEFT:'slight left',BEAR_RIGHT:'slight right',KEEP_LEFT:'slight left',KEEP_RIGHT:'slight right',MAKE_UTURN:'uturn',TRY_MAKE_UTURN:'uturn',STRAIGHT:'straight',MOTORWAY_EXIT_LEFT:'slight left',MOTORWAY_EXIT_RIGHT:'slight right',TAKE_EXIT:'slight right',ENTRANCE_RAMP:'slight right',WAYPOINT_LEFT:'left',WAYPOINT_RIGHT:'right'};
+async function ttRoute(a){const mode=profile==='car'?'motorcycle':'bicycle';
+ const u=`https://api.tomtom.com/routing/1/calculateRoute/${a[0].toFixed(6)},${a[1].toFixed(6)}:${(+to.lat).toFixed(6)},${(+to.lng).toFixed(6)}/json?key=${encodeURIComponent(ttKey())}&travelMode=${mode}&traffic=${mode==='motorcycle'}&routeType=fastest&instructionsType=text&language=en-GB&sectionType=traffic&computeTravelTimeFor=all&maxAlternatives=0`;
+ const r=await fetch(u);if(!r.ok)throw new Error('TomTom '+r.status);const j=await r.json(),rt=j.routes&&j.routes[0];if(!rt)throw new Error('TomTom: no route');
+ const co=[];rt.legs.forEach(l=>l.points.forEach(p=>{const q=[p.latitude,p.longitude],l2=co[co.length-1];if(!l2||l2[0]!==q[0]||l2[1]!==q[1])co.push(q)}));
+ const cum=[0];for(let i=1;i<co.length;i++)cum.push(cum[i-1]+hav(co[i-1],co[i]));
+ const strip=s=>String(s||'').replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim();
+ const ins=(rt.guidance&&rt.guidance.instructions)||[];
+ let steps=ins.map((x,i)=>{const m=x.maneuver||'',type=m==='DEPART'||i===0?'depart':/^ARRIVE/.test(m)?'arrive':/ROUNDABOUT/.test(m)?'roundabout':'turn',
+  mod=/ROUNDABOUT_LEFT/.test(m)?'left':/ROUNDABOUT_RIGHT/.test(m)?'right':/ROUNDABOUT_BACK/.test(m)?'uturn':TTM[m]||'straight';
+  let text=strip(x.message);if(!text)text=type==='arrive'?'Arrive at your destination':type==='depart'?'Head out':`${mod==='straight'?'Continue':'Turn '+mod}${x.street?' onto '+x.street:''}`;
+  return {ll:[x.point.latitude,x.point.longitude],cum:Math.min(x.routeOffsetInMeters||0,cum[cum.length-1]),text,type,mod,dist:0,said:{}}});
+ if(!steps.length||steps[0].type!=='depart')steps.unshift({ll:co[0],cum:0,text:'Head out',type:'depart',mod:'straight',dist:0,said:{}});
+ if(steps[steps.length-1].type!=='arrive')steps.push({ll:co[co.length-1],cum:cum[cum.length-1],text:'Arrive at your destination',type:'arrive',mod:'straight',dist:0,said:{}});
+ const s=rt.summary||{};
+ route={co,cum,dist:s.lengthInMeters||cum[cum.length-1],dur:s.travelTimeInSeconds||cum[cum.length-1]/8,delay:s.trafficDelayInSeconds||0,steps,idx:0,
+  traffic:(rt.sections||[]).filter(x=>x.sectionType==='TRAFFIC').map(x=>({s:x.startPointIndex,e:x.endPointIndex,mag:x.magnitudeOfDelay||0,cat:x.simpleCategory||'JAM',delay:x.delayInSeconds||0,cum:cum[x.startPointIndex]||0,len:(cum[x.endPointIndex]||0)-(cum[x.startPointIndex]||0)}))}}
 function build(r){const co=r.geometry.coordinates.map(([x,y])=>[y,x]),cum=[0];for(let i=1;i<co.length;i++)cum.push(cum[i-1]+hav(co[i-1],co[i]));
  let k=0;const steps=r.legs[0].steps.map(s=>{const loc=[s.maneuver.location[1],s.maneuver.location[0]];let bi=k,bd=1e12;for(let i=k;i<co.length;i++){const d=hav(co[i],loc);if(d<bd){bd=d;bi=i}if(d<1)break;if(i-k>4000)break}k=bi;
   return {ll:loc,cum:cum[bi],text:instr(s),type:s.maneuver.type,mod:s.maneuver.modifier||'straight',dist:s.distance,said:{}}});
@@ -152,6 +174,8 @@ function draw(fit){rl.clearLayers();doneLine=null;const co=route.co;
  L.polyline(co,{color:'#d6f53f',weight:22,opacity:.18,interactive:false}).addTo(rl);
  L.polyline(co,{color:'#0b120c',weight:11,opacity:.85,interactive:false,lineJoin:'round',lineCap:'round'}).addTo(rl);
  L.polyline(co,{color:'#d6f53f',weight:7,opacity:1,interactive:false,lineJoin:'round',lineCap:'round'}).addTo(rl);
+ (route.traffic||[]).forEach(t=>{const seg=co.slice(t.s,t.e+1);if(seg.length<2)return;const col=t.cat==='ROAD_CLOSURE'||t.mag>=3?'#ff3b3b':t.mag===2?'#ff8a00':'#ffc400';
+  L.polyline(seg,{color:col,weight:7,opacity:1,interactive:false,lineCap:'round',lineJoin:'round',...(t.cat==='ROAD_CLOSURE'?{dashArray:'8 8'}:{})}).addTo(rl)});
  doneLine=L.polyline([],{color:'#8a968a',weight:7,opacity:1,interactive:false,lineJoin:'round',lineCap:'round'}).addTo(rl);
  // direction chevrons along the route
  const gap=Math.max(120,route.dist/40);for(let dd=gap/2;dd<route.dist;dd+=gap){const i=route.cum.findIndex(c=>c>=dd);if(i<1)continue;const k=Math.min(co.length-1,i+1),b2=bearing(co[i-1],co[k]);
@@ -168,9 +192,9 @@ function draw(fit){rl.clearLayers();doneLine=null;const co=route.co;
  L.marker(en,{icon:L.divIcon({className:'',html:`<div class="dpin"><div class="dhead">${S('<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>')}</div><div class="dtail"></div><span class="dlabel">${esc2(to.name)}</span></div>`,iconSize:[44,56],iconAnchor:[22,54]}),zIndexOffset:500}).addTo(rl);
  if(fit){const ph=isPhone();map.fitBounds(L.latLngBounds(co),{paddingTopLeft:ph?[30,170]:[350,160],paddingBottomRight:ph?[30,150]:[360,140],maxZoom:17})}
  $('turnList').innerHTML=route.steps.map((s,i)=>`<li data-i="${i}"><span class="ti">${turnIcon(s.type,s.mod)}</span><span>${s.text}</span><small>${fmtD(s.cum)}</small></li>`).join('');
- $('rDist').textContent=fmtD(route.dist);$('rTime').textContent=fmtT(route.dur);$('routeChip').textContent=`${route.steps.length-2} turns · ${profile==='car'?'Motorbike':'Cycle'}`;
+ $('rDist').textContent=fmtD(route.dist);$('rTime').textContent=fmtT(route.dur)+(route.delay>=60?` (+${Math.round(route.delay/60)})`:'');$('routeChip').textContent=`${route.steps.length-2} turns · ${profile==='car'?'Motorbike':'Cycle'}`;
  dock();showNext();summary()}
-function summary(){if(!route)return;$('summary').hidden=false;$('sumName').textContent=to.name;$('sumSub').textContent=`${fmtD(route.dist)} · ${profile==='car'?'Motorbike':'Cycle'} · ETA ${clock(new Date(Date.now()+route.dur*1000))}`;$('sumTime').textContent=fmtT(route.dur);$('sumDist').textContent=fmtD(route.dist);$('sumChip').textContent=$('routeChip').textContent.split('· ').pop()}
+function summary(){if(!route)return;$('summary').hidden=false;$('sumName').textContent=to.name;$('sumSub').textContent=`${fmtD(route.dist)} · ${profile==='car'?'Motorbike':'Cycle'} · ETA ${clock(new Date(Date.now()+route.dur*1000))}${route.delay>=60?` · +${fmtT(route.delay)} traffic`:route.src==='tomtom'?' · live traffic':''}`;$('sumTime').textContent=fmtT(route.dur);$('sumDist').textContent=fmtD(route.dist);$('sumChip').textContent=$('routeChip').textContent.split('· ').pop()}
 $('turnList').onclick=e=>{const li=e.target.closest('li[data-i]');if(!li||!route)return;const i=+li.dataset.i;stepView=i;follow=false;$('recenter').classList.remove('on');map.flyTo(route.steps[i].ll,17,{duration:.6});showNext(i);if(isPhone())minSheet(true)};
 $('nextStep').onclick=()=>stepNav(1);$('prevStep').onclick=()=>stepNav(-1);
 function stepNav(d){if(!route)return;const base=stepView??route.idx;const i=Math.max(0,Math.min(route.steps.length-1,base+d));stepView=i;follow=false;$('recenter').classList.remove('on');map.flyTo(route.steps[i].ll,17,{duration:.5});showNext(i)}
