@@ -79,11 +79,23 @@ function novaContext(){const a=along(),c={time:new Date().toISOString(),app:'Rid
  c.nearby=HZ.help.slice(0,8).map(h=>({type:h.kind,name:h.name,distance_m:Math.round(me?hav(me,h.ll):h.d)}));
  if(G.room)c.group=Object.values(G.members).filter(m=>m.id!==G.id).map(m=>({name:m.name,distance_m:me&&m.lat!=null?Math.round(hav(me,[m.lat,m.lng])):null,speed_kmh:m.spd,riding:!!m.riding}));
  return c}
-async function askApi(q,lang){if(!NOVA.url)return null;const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),15000);
- try{const r=await fetch(NOVA.url,{method:'POST',signal:ctl.signal,headers:{'Content-Type':'application/json',...(NOVA.tok?{Authorization:'Bearer '+NOVA.tok}:{})},body:JSON.stringify({question:q,language:lang,context:novaContext()})});
-  const ct=r.headers.get('content-type')||'',body=ct.includes('json')?await r.json():await r.text();if(!r.ok)throw new Error('HTTP '+r.status);
-  const ans=typeof body==='string'?body:body.answer||body.reply||body.text||body.message||(body.choices&&body.choices[0]&&(body.choices[0].message&&body.choices[0].message.content||body.choices[0].text));
-  return ans?String(ans).trim():null}catch(e){return {error:e.name==='AbortError'?'timeout':e.message}}finally{clearTimeout(t)}}
+function pickAnswer(body){if(body==null)return null;if(typeof body==='string'){try{return pickAnswer(JSON.parse(body))}catch(_){return body.trim()||null}}
+ if(Array.isArray(body))return pickAnswer(body[0]);
+ const v=body.answer||body.reply||body.response||body.text||body.message||body.output||body.result||body.content||(body.data&&pickAnswer(body.data))||(body.choices&&body.choices[0]&&((body.choices[0].message&&body.choices[0].message.content)||body.choices[0].text))||(body.candidates&&body.candidates[0]&&body.candidates[0].content&&body.candidates[0].content.parts&&body.candidates[0].content.parts.map(p=>p.text).join(' '));
+ return typeof v==='string'?v.trim():v&&typeof v==='object'?pickAnswer(v):null}
+const NHTTP={};let nhttpId=0;
+function nativePost(url,body,auth){return new Promise(res=>{const id='h'+(++nhttpId);NHTTP[id]=res;NovaNative.http(id,url,body,auth||'');setTimeout(()=>{if(NHTTP[id]){delete NHTTP[id];res({code:0,text:'timeout'})}},80000)})}
+async function askApi(q,lang){if(!NOVA.url)return null;
+ const body=JSON.stringify({question:q,message:q,prompt:q,query:q,language:lang,context:novaContext()});
+ try{let code,text;
+  if(window.NovaNative&&NovaNative.http){const r=await nativePost(NOVA.url,body,NOVA.tok);code=r.code;text=r.text}
+  else{const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),75000);
+   try{const r=await fetch(NOVA.url,{method:'POST',signal:ctl.signal,headers:{'Content-Type':'application/json',...(NOVA.tok?{Authorization:'Bearer '+NOVA.tok}:{})},body});code=r.status;text=await r.text()}
+   catch(e){return {error:e.name==='AbortError'?'no reply in 75 s':(/fetch|network/i.test(e.message)?'blocked or offline (check CORS on your server)':e.message)}}finally{clearTimeout(t)}}
+  if(!code)return {error:text==='timeout'?'no reply in 75 s':text};
+  if(code>=400)return {error:`HTTP ${code}${text?': '+String(text).slice(0,80):''}`};
+  const ans=pickAnswer(text);return ans?ans:{error:'reply had no answer text'}}
+ catch(e){return {error:e.message}}}
 
 // ---------- Google Gemini ----------
 const gemKey=()=>SET.get('gemKey','')||(window.RIDE_CONFIG&&RIDE_CONFIG.geminiKey)||'';
@@ -104,16 +116,16 @@ async function askGemini(q,lang){const k=gemKey();if(!k)return null;const ctl=ne
 // ---------- conversation ----------
 function bubble(cls,text,note){const d=document.createElement('div');d.className='nm '+cls;d.textContent=text;if(note){const s=document.createElement('small');s.textContent=note;d.append(s)}$('novaChat').append(d);$('novaChat').scrollTop=1e6;return d}
 async function ask(q){q=String(q||'').trim();if(!q||NOVA.busy)return;NOVA.busy=true;openNova();bubble('me',q);const lang=langOf(q),L=(e,h)=>lang==='hi'?h:e;
- const wait=bubble('ai typing','');document.body.classList.add('novathink');let ans=null,src='';
+ const wait=bubble('ai typing','');document.body.classList.add('novathink');let ans=null,src='';const wake=setTimeout(()=>{if(wait.isConnected)wait.textContent=L('Waking up your Nova AI… (free servers can take up to a minute)','आपका Nova AI जाग रहा है… (फ्री सर्वर में एक मिनट तक लग सकता है)')},5000);
  try{const ai=NOVA.url||gemKey(),advice=/\b(why|should|better|best|suggest|advice|recommend|plan|explain|compare|kyun|kyu|behtar|accha|kya karun|kya karu|sujhav|salah)\b|बेहतर|अच्छा|क्यों|सलाह|सुझाव|क्या करूं/i.test(q),
   it=(NOVA.all||advice)&&ai?null:INTENTS.find(i=>i.re.test(q));let err='';
   if(it){ans=await it.run(L,q);src='Nova · from the map'}
   else{if(NOVA.url){const r=await askApi(q,lang);if(typeof r==='string'){ans=r;src='Your Nova AI'}else if(r&&r.error)err='Nova AI: '+r.error}
    if(!ans&&gemKey()){const r=await askGemini(q,lang);if(typeof r==='string'){ans=r;src='Gemini AI · with live map data'}else if(r&&r.error)err=(err?err+' · ':'')+'Gemini: '+r.error}
-   if(!ans&&err){const it2=INTENTS.find(i=>i.re.test(q));ans=it2?await it2.run(L,q):L(`I couldn't reach the AI (${err}).`,`AI से जुड़ नहीं पाई (${err})।`);src=it2?'Nova · from the map':''}}
+   if(!ans&&err){const it2=INTENTS.find(i=>i.re.test(q));ans=it2?await it2.run(L,q):L(`I couldn't reach the AI (${err}).`,`AI से जुड़ नहीं पाई (${err})।`);src=it2?`⚠ ${err} — answered from the map`:''}}
   if(!ans){ans=L("I didn't catch that. Try: what's ahead, next turn, ETA, traffic, speed, weather, or nearest petrol pump.",'समझ नहीं पाई। पूछें: आगे क्या है, अगला मोड़, कब पहुंचूंगा, ट्रैफिक, स्पीड, मौसम या पास का पेट्रोल पंप।')}}
  catch(e){ans=L('Something went wrong. Please try again.','कुछ गड़बड़ हुई, फिर से पूछें।')}
- wait.remove();document.body.classList.remove('novathink');bubble('ai',ans,src);say(ans,lang==='hi'?'hi-IN':'en-IN',true);NOVA.busy=false}
+ clearTimeout(wake);wait.remove();document.body.classList.remove('novathink');bubble('ai',ans,src);say(ans,lang==='hi'?'hi-IN':'en-IN',true);NOVA.busy=false}
 function chips(){const hi=NOVA.lang==='hi';$('novaChips').innerHTML=(hi?['आगे क्या है?','अगला मोड़','कब पहुंचूंगा?','ट्रैफिक कैसा है?','मेरी स्पीड','मौसम','पास का पेट्रोल पंप','मैं कहां हूं?']:["What's ahead?",'Next turn','ETA','Traffic','My speed','Weather','Nearest petrol pump','Where am I?']).map(c=>`<button type="button">${c}</button>`).join('')}
 function openNova(){if(!$('nova').hidden)return;$('nova').hidden=false;document.body.classList.add('novaon');if(!$('novaChat').children.length){const L=(e,h)=>NOVA.lang==='hi'?h:e;bubble('ai',L(`Hi ${SET.get('rname','')||'rider'}, I'm Nova. I read the map for you — ask me anything about your ride.`,`नमस्ते ${SET.get('rname','')||'राइडर'}, मैं Nova हूं। मैं आपके लिए मैप पढ़ती हूं — राइड के बारे में कुछ भी पूछें।`),'Tap the mic and speak, or type')}}
 function closeNova(){$('nova').hidden=true;document.body.classList.remove('novaon')}
@@ -128,8 +140,8 @@ $('novaUrl').value=NOVA.url;$('novaAll').checked=NOVA.all;$('novaUpd').checked=N
 $('novaSave').onclick=()=>{const u=$('novaUrl').value.trim();if(u&&!/^https:\/\/|^http:\/\/(localhost|127\.0\.0\.1)/.test(u)){toast('Use an https:// address for your Nova AI');return}
  NOVA.url=u;SET.set('novaUrl',u);if($('novaTok').value){NOVA.tok=$('novaTok').value.trim();SET.set('novaTok',NOVA.tok);$('novaTok').value='';$('novaTok').placeholder='Token saved ••••'}
  NOVA.all=$('novaAll').checked;SET.set('novaAll',NOVA.all);if($('gemKey').value){SET.set('gemKey',$('gemKey').value.trim());$('gemKey').value=''}SET.set('gemModel',$('gemModel').value.trim());gemUI();NOVA.upd=$('novaUpd').checked;SET.set('novaUpd',NOVA.upd);toast('Nova settings saved');$('novaSettings').hidden=true};
-$('novaTest').onclick=async()=>{if(gemKey()&&!$('novaUrl').value.trim()){toast('Testing Gemini…');const g=await askGemini('Say hello to the rider in one short sentence.','en');toast(typeof g==='string'?'Gemini connected: '+g.slice(0,80):'Gemini error: '+(g&&g.error));return}const u=$('novaUrl').value.trim()||NOVA.url;if(!u){toast('Add your Nova AI address first');return}const old=NOVA.url;NOVA.url=u;const r=await askApi('Say hello in one short sentence.','en');NOVA.url=old;
- toast(r&&typeof r==='string'?'Connected: '+r.slice(0,80):'Could not connect'+(r&&r.error?': '+r.error:''))};
+$('novaTest').onclick=async()=>{toast('Testing… free servers may take up to a minute to wake');if(gemKey()&&!$('novaUrl').value.trim()){toast('Testing Gemini…');const g=await askGemini('Say hello to the rider in one short sentence.','en');toast(typeof g==='string'?'Gemini connected: '+g.slice(0,80):'Gemini error: '+(g&&g.error));return}const u=$('novaUrl').value.trim()||NOVA.url;if(!u){toast('Add your Nova AI address first');return}const old=NOVA.url;NOVA.url=u;const r=await askApi('Say hello in one short sentence.','en');NOVA.url=old;
+ bubble('ai',r&&typeof r==='string'?'✅ Connected to your Nova AI: '+r.slice(0,160):'❌ Could not connect: '+(r&&r.error||'no answer'),'Connection test');openNova()};
 // ---------- voice input ----------
 const SRec=window.SpeechRecognition||window.webkitSpeechRecognition;
 function listen(){const lang=NOVA.lang==='en'?'en-IN':'hi-IN';
@@ -147,3 +159,7 @@ setInterval(()=>{if(!riding||!NOVA.upd)return;const km=Math.floor(stats.dist/500
 function gemUI(){const k=gemKey();$('gemKey').placeholder=k?'Gemini key saved ••••'+k.slice(-4):'Gemini API key';$('gemModel').value=SET.get('gemModel','');$('gemModel').placeholder='Model: '+gemModel();
  $('novaSub').textContent=k?'Riding assistant · Gemini AI + live map':'Your riding assistant · reads the map for you'}
 gemUI();
+
+// save Nova settings as soon as they change (no need to press Save)
+['novaUrl','novaAll','novaUpd','gemModel'].forEach(id=>$(id).addEventListener('change',()=>{const u=$('novaUrl').value.trim();if(u&&!/^https:\/\//.test(u))return;NOVA.url=u;SET.set('novaUrl',u);NOVA.all=$('novaAll').checked;SET.set('novaAll',NOVA.all);NOVA.upd=$('novaUpd').checked;SET.set('novaUpd',NOVA.upd);SET.set('gemModel',$('gemModel').value.trim());toast('Saved')}));
+window.__novaNative.onHttp=(id,code,text)=>{const r=NHTTP[id];if(r){delete NHTTP[id];r({code,text})}};

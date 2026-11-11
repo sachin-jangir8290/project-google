@@ -24,6 +24,12 @@ import android.webkit.WebViewClient;
 
 import androidx.webkit.WebViewAssetLoader;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Locale;
@@ -129,6 +135,39 @@ public class MainActivity extends Activity {
             int ok = tts.setLanguage(locale);
             if (ok == TextToSpeech.LANG_MISSING_DATA || ok == TextToSpeech.LANG_NOT_SUPPORTED) tts.setLanguage(Locale.ENGLISH);
             tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "rideline");
+        }
+
+        /** POST JSON to the rider's own Nova AI from native code, so the server does not need CORS for the app. */
+        @JavascriptInterface
+        public void http(final String id, final String url, final String body, final String auth) {
+            new Thread(() -> {
+                int code = 0;
+                String text;
+                HttpURLConnection c = null;
+                try {
+                    if (url == null || !url.startsWith("https://")) throw new IllegalArgumentException("Use an https:// address");
+                    c = (HttpURLConnection) new URL(url).openConnection();
+                    c.setRequestMethod("POST");
+                    c.setConnectTimeout(75000);
+                    c.setReadTimeout(75000);
+                    c.setDoOutput(true);
+                    c.setRequestProperty("Content-Type", "application/json");
+                    c.setRequestProperty("Accept", "application/json, text/plain");
+                    if (auth != null && !auth.isEmpty()) c.setRequestProperty("Authorization", "Bearer " + auth);
+                    try (OutputStream os = c.getOutputStream()) { os.write(body.getBytes(StandardCharsets.UTF_8)); }
+                    code = c.getResponseCode();
+                    InputStream in = code >= 400 ? c.getErrorStream() : c.getInputStream();
+                    ByteArrayOutputStream bo = new ByteArrayOutputStream();
+                    if (in != null) { byte[] b = new byte[8192]; int n; while ((n = in.read(b)) > 0 && bo.size() < 200000) bo.write(b, 0, n); in.close(); }
+                    text = bo.toString("UTF-8");
+                } catch (Exception e) {
+                    text = e.getClass().getSimpleName() + ": " + e.getMessage();
+                } finally {
+                    if (c != null) c.disconnect();
+                }
+                final String call = "window.__novaNative&&window.__novaNative.onHttp(" + JSONObject.quote(id) + "," + code + "," + JSONObject.quote(text) + ")";
+                runOnUiThread(() -> web.evaluateJavascript(call, null));
+            }).start();
         }
 
         @JavascriptInterface
