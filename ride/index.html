@@ -81,6 +81,18 @@
   <button class="startpill" id="startPill">Start your ride <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
  </section>
 
+ <section class="card rainr" data-sheet="home" id="rainCard" hidden>
+  <h2 id="rainH">Rain on your route</h2>
+  <div class="rbar" id="rainBar"></div>
+  <p class="hint" id="rainTxt"></p>
+ </section>
+
+ <section class="card park" data-sheet="home">
+  <h2 id="parkH">Parking</h2>
+  <p class="hint" id="parkTxt">Save where you parked and find your bike later.</p>
+  <div class="prow"><button id="parkSave">Park here</button><button id="parkFind" disabled>Find my bike</button></div>
+ </section>
+
  <section class="card cond" data-sheet="home">
   <h2><svg viewBox="0 0 24 24"><path d="M9.6 4.6A2 2 0 1 1 11 8H2M12.6 19.4A2 2 0 1 0 14 16H2M17.5 8a2.5 2.5 0 1 1 2 4H2"/></svg>Ride conditions</h2>
   <span class="chip lime sm" id="windChip">Wind —</span>
@@ -135,6 +147,7 @@
   <div class="compass" id="compass"><svg id="dial" viewBox="0 0 220 220" aria-hidden="true"></svg><div class="ccenter"><b id="hdg">0°</b><small id="hdgDir">N</small></div><span class="cl n">N</span><span class="cl e">E</span><span class="cl s">S</span><span class="cl w">W</span></div>
   <div class="tiles sm"><div><small>Speed</small><b><span id="rdSpd">0</span> <u>km/h</u></b></div><div><small id="rdLimL">Speed alert</small><b><span id="rdLim">60</span> <u>km/h</u></b></div></div>
   <button class="startpill" id="rideGo">Start ride <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+  <div class="rcrow"><button id="reportBtn" class="rcb"><span id="reportI"></span>Report hazard</button><button id="shareLive" class="rcb"><span id="shareI"></span>Share live trip</button></div>
   <button class="glbtn" id="glanceBtn">Glance mode<small>Big arrow for a quick look from the helmet</small></button>
   <button class="emerg" id="emergBtn"><svg viewBox="0 0 24 24"><path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1zM16 8a5 5 0 0 1 0 8M19 5a9 9 0 0 1 0 14"/></svg>Emergency alert</button>
  </section>
@@ -167,6 +180,25 @@
   <h2 id="scoreH">Ride score</h2>
   <div class="sgauge"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" class="trk"/><circle cx="60" cy="60" r="50" class="val" id="scoreArc"/></svg><div><b id="scoreV">—</b><small id="scoreL">Start a ride</small></div></div>
   <div class="sfac" id="scoreFac"></div>
+ </section>
+
+ <section class="card fuel" data-sheet="stats">
+  <h2 id="fuelH">Fuel &amp; mileage</h2>
+  <div class="ftank"><div class="fgauge"><i id="fuelFill"></i></div><div><b id="fuelLeft">—</b><small id="fuelRange">Add a fill-up to start</small></div></div>
+  <div class="fstats"><div><b id="fuelKmpl">—</b><small>km / litre</small></div><div><b id="fuelCost">—</b><small>₹ per km</small></div><div><b id="fuelMonth">—</b><small>₹ this month</small></div></div>
+  <form class="fform" id="fuelForm"><input id="fLit" type="number" step="0.01" min="0.1" placeholder="Litres" required><input id="fAmt" type="number" step="1" min="1" placeholder="₹ Amount"><label class="ffull"><input type="checkbox" id="fFull" checked> Full tank</label><button>Add fill-up</button></form>
+  <div class="row2"><span><b>Tank size</b><small>Used for the fuel-left estimate</small></span><select id="tankSize"><option value="7">7 L</option><option value="10">10 L</option><option value="12" selected>12 L</option><option value="13">13 L</option><option value="15">15 L</option><option value="20">20 L</option></select></div>
+ </section>
+
+ <section class="card serv" data-sheet="stats">
+  <h2 id="servH">Service reminders</h2>
+  <div class="row2"><span><b>Odometer</b><small>Your bike's km reading — updates as you ride</small></span><input id="odo" type="number" min="0" step="1" placeholder="km"></div>
+  <ul class="slist" id="servList"></ul>
+ </section>
+
+ <section class="card ach" data-sheet="stats">
+  <h2 id="achH">Achievements</h2>
+  <div class="agrid" id="achGrid"></div>
  </section>
 
  <section class="card hist" data-sheet="stats">
@@ -306,6 +338,7 @@
  <ul class="stips" id="spTips"></ul>
  <button class="startpill" id="spOk">Done</button>
 </div></div>
+<div class="rpick" id="rpick" hidden><div class="rpbox"><h3>Report a hazard here</h3><p class="hint">It appears on the map, warns you when you come back, and is sent to your group.</p><div class="rpgrid" id="rpGrid"></div><button class="rpx" id="rpX">Cancel</button></div></div>
 <div id="toast"></div>
 <script src="config.js"></script>
 <script src="icons.js"></script>
@@ -315,5 +348,6 @@
 <script src="traffic.js"></script>
 <script src="nova.js"></script>
 <script src="extras.js"></script>
+<script src="garage.js"></script>
 </body>
 </html>
