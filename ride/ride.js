@@ -38,7 +38,7 @@ map.on('moveend',()=>{const c=map.getCenter();store.set('view',[+c.lat.toFixed(4
 // ---------- icons ----------
 const S=(d,extra='')=>`<svg viewBox="0 0 24 24" ${extra}>${d}</svg>`;
 function turnIcon(type,mod){
- if(type==='arrive')return S('<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>');
+ if(type==='arrive'||type==='waypoint')return S('<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>');
  if(type==='roundabout'||type==='rotary'||type==='roundabout turn'||type==='exit roundabout')return S('<circle cx="12" cy="10" r="4"/><path d="M12 14v7M16 10h4M18 8l2 2-2 2"/>');
  if(type==='depart')return S('<path d="M12 20V5M6 11l6-6 6 6"/>');
  const bent='<path d="M8 21v-8a4 4 0 0 1 4-4h8M16 5l4 4-4 4"/>';
@@ -53,6 +53,7 @@ function instr(s){const m=s.maneuver,mod=m.modifier||'straight',road=s.name||s.r
  switch(m.type){
   case 'depart':return `Head ${DIRW[compass(m.bearing_after||0)]}${road?' on '+road:''}`;
   case 'arrive':return 'Arrive at your destination';
+  case 'waypoint':return `Arrive at your stop: ${s.name||'stop'}`;
   case 'roundabout':case 'rotary':return `At the roundabout, take exit ${m.exit||1}${on}`;
   case 'exit roundabout':case 'exit rotary':return `Exit the roundabout${on}`;
   case 'fork':return `Keep ${mod.replace('slight ','')} at the fork${on}`;
@@ -128,9 +129,11 @@ function sugg(field){const q=$(field).value.trim();clearTimeout(sTimer);if(q.len
   const r=await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=6&accept-language=en&q=${encodeURIComponent(q)}&viewbox=${c[1]-1},${c[0]+1},${c[1]+1},${c[0]-1}`);
   sItems=await r.json();sField=field;$('sugg').innerHTML=sItems.length?sItems.map((it,i)=>{const [a,...b]=it.display_name.split(', ');return `<li data-i="${i}">${a}<small>${b.slice(0,3).join(', ')}</small></li>`}).join(''):'<li>No places found</li>';$('sugg').hidden=false}
   catch(_){toast('Search needs an internet connection')}},400)}
+let stops=store.get('stops')||[];
 $('to').oninput=()=>sugg('to');$('from').oninput=()=>sugg('from');
 $('sugg').onclick=e=>{const li=e.target.closest('li[data-i]');if(!li)return;const it=sItems[+li.dataset.i],p={lat:+it.lat,lng:+it.lon,name:it.display_name.split(', ')[0]};
- $(sField).value=p.name;$('sugg').hidden=true;if(sField==='to'){to=p;store.set('to',to)}else from=p;plan()};
+ $('sugg').hidden=true;if(sField==='stopIn'){$('stopIn').value='';if(stops.length>=5){toast('Up to 5 stops');return}stops.push(p);store.set('stops',stops);window.renderStops&&renderStops();if(to)plan();return}
+ $(sField).value=p.name;if(sField==='to'){to=p;store.set('to',to)}else from=p;plan()};
 document.addEventListener('click',e=>{if(!e.target.closest('.plan'))$('sugg').hidden=true});
 map.on('contextmenu',async e=>{to={lat:e.latlng.lat,lng:e.latlng.lng,name:'Dropped pin'};$('to').value='Dropped pin';plan();
  try{const r=await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&accept-language=en&lat=${e.latlng.lat}&lon=${e.latlng.lng}&zoom=17`),j=await r.json();if(j&&j.name||j.address){to.name=j.name||j.address.road||j.address.suburb||'Dropped pin';$('to').value=to.name;$('destTitle').textContent=to.name;store.set('to',to)}}catch(_){}});
@@ -142,7 +145,7 @@ async function plan(opts={}){if(!to)return;const a=opts.from||(from?[from.lat,fr
  $('statusChip').textContent=opts.reroute?'Re-routing…':'Finding route…';
  try{let src='osrm';
   if(ttKey()){try{await ttRoute(a);src='tomtom'}catch(e){console.warn('TomTom routing failed, using OSRM',e)}}
-  if(src==='osrm'){const url=`https://routing.openstreetmap.de/routed-${profile}/route/v1/driving/${a[1]},${a[0]};${to.lng},${to.lat}?overview=full&geometries=geojson&steps=true&alternatives=false`;
+  if(src==='osrm'){const url=`https://routing.openstreetmap.de/routed-${profile}/route/v1/driving/${a[1]},${a[0]};${stops.map(s=>s.lng+','+s.lat).join(';')}${stops.length?';':''}${to.lng},${to.lat}?overview=full&geometries=geojson&steps=true&alternatives=false`;
    const j=await (await fetch(url)).json();if(j.code!=='Ok'||!j.routes||!j.routes.length)throw new Error(j.message||'No route');build(j.routes[0])}
   route.src=src;route.start=a;draw(!opts.reroute);weather();elevation();window.SAFE&&SAFE.onRoute();rerouting=false;offCount=0;
   $('statusChip').textContent=riding?'Navigating':'Route ready';$('destTitle').textContent=to.name;$('demoBtn').hidden=riding;
@@ -153,13 +156,13 @@ async function plan(opts={}){if(!to)return;const a=opts.from||(from?[from.lat,fr
 const ttKey=()=>{try{const k=JSON.parse(localStorage.getItem('rl_s_ttkey')||'null');if(k)return k}catch(_){}return (window.RIDE_CONFIG&&RIDE_CONFIG.tomtomKey)||''};
 const TTM={TURN_LEFT:'left',TURN_RIGHT:'right',SHARP_LEFT:'sharp left',SHARP_RIGHT:'sharp right',BEAR_LEFT:'slight left',BEAR_RIGHT:'slight right',KEEP_LEFT:'slight left',KEEP_RIGHT:'slight right',MAKE_UTURN:'uturn',TRY_MAKE_UTURN:'uturn',STRAIGHT:'straight',MOTORWAY_EXIT_LEFT:'slight left',MOTORWAY_EXIT_RIGHT:'slight right',TAKE_EXIT:'slight right',ENTRANCE_RAMP:'slight right',WAYPOINT_LEFT:'left',WAYPOINT_RIGHT:'right'};
 async function ttRoute(a){const mode=profile==='car'?'motorcycle':'bicycle';
- const u=`https://api.tomtom.com/routing/1/calculateRoute/${a[0].toFixed(6)},${a[1].toFixed(6)}:${(+to.lat).toFixed(6)},${(+to.lng).toFixed(6)}/json?key=${encodeURIComponent(ttKey())}&travelMode=${mode}&traffic=${mode==='motorcycle'}&routeType=fastest&instructionsType=text&language=en-GB&sectionType=traffic&computeTravelTimeFor=all&maxAlternatives=0`;
+ const u=`https://api.tomtom.com/routing/1/calculateRoute/${a[0].toFixed(6)},${a[1].toFixed(6)}:${stops.map(s=>(+s.lat).toFixed(6)+','+(+s.lng).toFixed(6)+':').join('')}${(+to.lat).toFixed(6)},${(+to.lng).toFixed(6)}/json?key=${encodeURIComponent(ttKey())}&travelMode=${mode}&traffic=${mode==='motorcycle'}&routeType=fastest&instructionsType=text&language=en-GB&sectionType=traffic&computeTravelTimeFor=all&maxAlternatives=0`;
  const r=await fetch(u);if(!r.ok)throw new Error('TomTom '+r.status);const j=await r.json(),rt=j.routes&&j.routes[0];if(!rt)throw new Error('TomTom: no route');
  const co=[];rt.legs.forEach(l=>l.points.forEach(p=>{const q=[p.latitude,p.longitude],l2=co[co.length-1];if(!l2||l2[0]!==q[0]||l2[1]!==q[1])co.push(q)}));
  const cum=[0];for(let i=1;i<co.length;i++)cum.push(cum[i-1]+hav(co[i-1],co[i]));
  const strip=s=>String(s||'').replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim();
  const ins=(rt.guidance&&rt.guidance.instructions)||[];
- let steps=ins.map((x,i)=>{const m=x.maneuver||'',type=m==='DEPART'||i===0?'depart':/^ARRIVE/.test(m)?'arrive':/ROUNDABOUT/.test(m)?'roundabout':'turn',
+ let steps=ins.map((x,i)=>{const m=x.maneuver||'',type=m==='DEPART'||i===0?'depart':/^WAYPOINT/.test(m)?'waypoint':/^ARRIVE/.test(m)?'arrive':/ROUNDABOUT/.test(m)?'roundabout':'turn',
   mod=/ROUNDABOUT_LEFT/.test(m)?'left':/ROUNDABOUT_RIGHT/.test(m)?'right':/ROUNDABOUT_BACK/.test(m)?'uturn':TTM[m]||'straight';
   let text=strip(x.message);if(!text)text=type==='arrive'?'Arrive at your destination':type==='depart'?'Head out':`${mod==='straight'?'Continue':'Turn '+mod}${x.street?' onto '+x.street:''}`;
   return {ll:[x.point.latitude,x.point.longitude],cum:Math.min(x.routeOffsetInMeters||0,cum[cum.length-1]),text,type,mod,dist:0,said:{}}});
@@ -169,7 +172,7 @@ async function ttRoute(a){const mode=profile==='car'?'motorcycle':'bicycle';
  route={co,cum,dist:s.lengthInMeters||cum[cum.length-1],dur:s.travelTimeInSeconds||cum[cum.length-1]/8,delay:s.trafficDelayInSeconds||0,steps,idx:0,
   traffic:(rt.sections||[]).filter(x=>x.sectionType==='TRAFFIC').map(x=>({s:x.startPointIndex,e:x.endPointIndex,mag:x.magnitudeOfDelay||0,cat:x.simpleCategory||'JAM',delay:x.delayInSeconds||0,cum:cum[x.startPointIndex]||0,len:(cum[x.endPointIndex]||0)-(cum[x.startPointIndex]||0)}))}}
 function build(r){const co=r.geometry.coordinates.map(([x,y])=>[y,x]),cum=[0];for(let i=1;i<co.length;i++)cum.push(cum[i-1]+hav(co[i-1],co[i]));
- let k=0;const steps=r.legs[0].steps.map(s=>{const loc=[s.maneuver.location[1],s.maneuver.location[0]];let bi=k,bd=1e12;for(let i=k;i<co.length;i++){const d=hav(co[i],loc);if(d<bd){bd=d;bi=i}if(d<1)break;if(i-k>4000)break}k=bi;
+ let k=0;const nL=r.legs.length;const all=r.legs.flatMap((l,li)=>l.steps.filter(s=>!(li>0&&s.maneuver.type==='depart')).map(s=>li<nL-1&&s.maneuver.type==='arrive'?{...s,maneuver:{...s.maneuver,type:'waypoint'},name:(stops[li]&&stops[li].name)||'stop'}:s));const steps=all.map(s=>{const loc=[s.maneuver.location[1],s.maneuver.location[0]];let bi=k,bd=1e12;for(let i=k;i<co.length;i++){const d=hav(co[i],loc);if(d<bd){bd=d;bi=i}if(d<1)break;if(i-k>4000)break}k=bi;
   return {ll:loc,cum:cum[bi],text:instr(s),type:s.maneuver.type,mod:s.maneuver.modifier||'straight',dist:s.distance,said:{}}});
  route={co,cum,dist:r.distance,dur:r.duration,steps,idx:0}}
 function draw(fit){rl.clearLayers();doneLine=null;const co=route.co;

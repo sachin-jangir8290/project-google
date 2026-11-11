@@ -59,6 +59,8 @@
   <h2><svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="3"/><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/></svg>Plan route</h2>
   <div class="field"><span class="dot a"></span><input id="from" placeholder="Start: My location" autocomplete="off"><button class="mini" id="useLoc" title="Use my location"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button></div>
   <div class="field"><span class="dot b"></span><input id="to" placeholder="Destination" autocomplete="off"></div>
+  <div class="stops" id="stopList"></div>
+  <div class="field stopf"><span class="dot s"></span><input id="stopIn" placeholder="Add a stop (fuel, food, a friend)" autocomplete="off"></div>
   <ul class="sugg" id="sugg" hidden></ul>
   <div class="qchips" id="qchips"><button data-q="fuel" data-i="fuel">Fuel</button><button data-q="hospital" data-i="hospital">Hospital</button><button data-q="police" data-i="police">Police</button><button data-q="last" id="qLast" hidden>Last trip</button></div>
   <div class="seg" id="profile"><button data-p="car" class="on">Motorbike</button><button data-p="bike">Cycle</button></div>
@@ -91,6 +93,14 @@
   <h2 id="parkH">Parking</h2>
   <p class="hint" id="parkTxt">Save where you parked and find your bike later.</p>
   <div class="prow"><button id="parkSave">Park here</button><button id="parkFind" disabled>Find my bike</button></div>
+ </section>
+
+ <section class="card offl" data-sheet="home">
+  <h2 id="offH">Offline maps</h2>
+  <p class="hint" id="offTxt">Save the map so it keeps working without mobile network.</p>
+  <div class="obar" id="offBar" hidden><i id="offFill"></i></div>
+  <div class="prow"><button id="offRoute">Save route map</button><button id="offArea">Save this area</button></div>
+  <button class="lnk" id="offClear">Delete saved maps</button>
  </section>
 
  <section class="card cond" data-sheet="home">
@@ -182,6 +192,12 @@
   <div class="sfac" id="scoreFac"></div>
  </section>
 
+ <section class="card week" data-sheet="stats">
+  <h2 id="weekH">This week</h2>
+  <div class="wtop"><div><b id="wkKm">0</b><small>km this week</small></div><div><b id="wkStreak">0</b><small>day streak</small></div><div><b id="wkRides">0</b><small>rides</small></div></div>
+  <div class="wchart" id="wkChart"></div>
+ </section>
+
  <section class="card fuel" data-sheet="stats">
   <h2 id="fuelH">Fuel &amp; mileage</h2>
   <div class="ftank"><div class="fgauge"><i id="fuelFill"></i></div><div><b id="fuelLeft">—</b><small id="fuelRange">Add a fill-up to start</small></div></div>
@@ -222,6 +238,8 @@
   </div>
   <div id="grpIn" hidden>
    <div class="gcode"><div><small>Group code</small><b id="grpCodeV">—</b></div><button id="grpShare">Share</button><button id="grpLeave" class="lv">Leave</button></div>
+   <div class="convoy"><label class="tog"><span><b>Convoy mode</b><small>Alerts when a rider falls behind or stops</small></span><input type="checkbox" id="convoyOn" checked><i></i></label>
+    <button class="rcb" id="regroupBtn"><span id="regroupI"></span>Regroup at my location</button></div>
    <div class="grank" id="grpRank"></div>
    <ol class="gmem" id="grpMembers"></ol>
    <div class="gchat" id="grpChat"></div>
@@ -341,6 +359,7 @@
 <div class="rpick" id="rpick" hidden><div class="rpbox"><h3>Report a hazard here</h3><p class="hint">It appears on the map, warns you when you come back, and is sent to your group.</p><div class="rpgrid" id="rpGrid"></div><button class="rpx" id="rpX">Cancel</button></div></div>
 <div id="toast"></div>
 <script src="config.js"></script>
+<script src="offline.js"></script>
 <script src="icons.js"></script>
 <script src="ride.js"></script>
 <script src="safety.js"></script>
@@ -349,5 +368,6 @@
 <script src="nova.js"></script>
 <script src="extras.js"></script>
 <script src="garage.js"></script>
+<script src="more.js"></script>
 </body>
 </html>

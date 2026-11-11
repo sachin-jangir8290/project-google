@@ -22,7 +22,11 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import androidx.core.content.FileProvider;
 import androidx.webkit.WebViewAssetLoader;
+
+import java.io.File;
+import java.io.FileOutputStream;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -168,6 +172,29 @@ public class MainActivity extends Activity {
                 final String call = "window.__novaNative&&window.__novaNative.onHttp(" + JSONObject.quote(id) + "," + code + "," + JSONObject.quote(text) + ")";
                 runOnUiThread(() -> web.evaluateJavascript(call, null));
             }).start();
+        }
+
+        /** Save a text file (for example a GPX ride) and open the Android share sheet. */
+        @JavascriptInterface
+        public void shareFile(final String name, final String mime, final String text) {
+            runOnUiThread(() -> {
+                try {
+                    File dir = new File(getCacheDir(), "exports");
+                    if (!dir.exists() && !dir.mkdirs()) throw new IllegalStateException("no export folder");
+                    String safe = name == null ? "ride.gpx" : name.replaceAll("[^A-Za-z0-9._-]", "_");
+                    File f = new File(dir, safe);
+                    try (FileOutputStream out = new FileOutputStream(f)) { out.write(text.getBytes(StandardCharsets.UTF_8)); }
+                    Uri uri = FileProvider.getUriForFile(MainActivity.this, "tech.openwise.rideline.files", f);
+                    Intent send = new Intent(Intent.ACTION_SEND);
+                    send.setType(mime == null ? "application/octet-stream" : mime);
+                    send.putExtra(Intent.EXTRA_STREAM, uri);
+                    send.putExtra(Intent.EXTRA_SUBJECT, safe);
+                    send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    startActivity(Intent.createChooser(send, "Share ride"));
+                } catch (Exception e) {
+                    js("onError", "Could not share the file: " + e.getMessage());
+                }
+            });
         }
 
         @JavascriptInterface

@@ -76,6 +76,9 @@ wss.on('connection', ws => {
       const r = m.rep;
       if (r && REPORTS.has(r.k) && Array.isArray(r.ll) && num(r.ll[0], -90, 90) != null && num(r.ll[1], -180, 180) != null)
         msg.rep = { k: r.k, ll: [r.ll[0], r.ll[1]], t: Date.now() };
+      const mt = m.meet;
+      if (mt && Array.isArray(mt.ll) && num(mt.ll[0], -90, 90) != null && num(mt.ll[1], -180, 180) != null)
+        msg.meet = { ll: [mt.ll[0], mt.ll[1]] };
       room.msgs.push(msg); if (room.msgs.length > MAX_MSGS) room.msgs.shift();
       broadcast(room, msg);
     } else if (m.t === 'sos') {
