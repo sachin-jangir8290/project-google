@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#0b120c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>RideLine – Bike Navigation</title>
+<meta name="description" content="Bike ride navigation with a clear, glowing route on a satellite map, next-turn guidance, voice prompts, speed and weather.">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="ride.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+</head>
+<body>
+<div id="map"></div>
+<div class="shade"></div>
+
+<header class="top">
+ <a class="brand" href="./"><span class="bmark"><svg viewBox="0 0 24 24"><circle cx="6" cy="16" r="3.4"/><circle cx="18" cy="16" r="3.4"/><path d="M6 16l4-7h5l3 7M10 9l-1.5-3H6M15 9l1-3h2"/></svg></span>Ride<b>Line</b></a>
+ <nav class="pills" id="tabs">
+  <button data-tab="ride" class="on"><svg viewBox="0 0 24 24"><path d="M12 2 4 21l8-4 8 4z"/></svg>Ride</button>
+  <button data-tab="route"><svg viewBox="0 0 24 24"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h7"/></svg>Route</button>
+  <button data-tab="stats"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Stats</button>
+ </nav>
+ <div class="tright">
+  <button class="round" id="voiceBtn" title="Voice guidance" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4zM15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></button>
+  <button class="round" id="layerBtn" title="Map style"><svg viewBox="0 0 24 24"><path d="m12 2 10 5-10 5L2 7z"/><path d="m2 12 10 5 10-5M2 17l10 5 10-5"/></svg></button>
+ </div>
+</header>
+
+<div class="next" id="next" hidden>
+ <div class="nicon" id="nicon"></div>
+ <div class="ntext"><b id="ndist">—</b><span id="ninstr">—</span><small id="nthen"></small></div>
+</div>
+
+<aside class="side left" id="left">
+ <section class="card now">
+  <div class="chips"><span class="chip lime" id="statusChip">Plan a ride</span><span class="chip live" id="liveChip" hidden>● LIVE</span></div>
+  <h1 id="destTitle">Where to?</h1>
+  <div class="meta"><span id="metaDate">—</span><span id="metaEta"></span></div>
+ </section>
+
+ <section class="card plan" data-sheet="route">
+  <h2><svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="3"/><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/></svg>Plan route</h2>
+  <div class="field"><span class="dot a"></span><input id="from" placeholder="Start: My location" autocomplete="off"><button class="mini" id="useLoc" title="Use my location"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button></div>
+  <div class="field"><span class="dot b"></span><input id="to" placeholder="Destination" autocomplete="off"></div>
+  <ul class="sugg" id="sugg" hidden></ul>
+  <div class="seg" id="profile"><button data-p="car" class="on">Motorbike</button><button data-p="bike">Cycle</button></div>
+  <p class="hint">Tip: long-press / right-click the map to set a destination.</p>
+ </section>
+
+ <section class="card cond" data-sheet="ride">
+  <h2><svg viewBox="0 0 24 24"><path d="M9.6 4.6A2 2 0 1 1 11 8H2M12.6 19.4A2 2 0 1 0 14 16H2M17.5 8a2.5 2.5 0 1 1 2 4H2"/></svg>Ride conditions</h2>
+  <span class="chip lime sm" id="windChip">Wind —</span>
+  <div class="big"><b id="windSpd">—</b><span id="windDir">km/h</span></div>
+  <div class="duo"><div><b id="temp">—</b><small>Temperature</small></div><div><b id="rain">—</b><small>Rain chance</small></div></div>
+ </section>
+
+ <section class="card tip" data-sheet="ride">
+  <h2><svg viewBox="0 0 24 24"><path d="m12 3 1.9 5.8H20l-5 3.6 1.9 5.8L12 14.6l-5 3.6L9 12.4 4 8.8h6.1z"/></svg>Ride tip</h2>
+  <small class="upd" id="tipUpd">● Updated now</small>
+  <p id="tipText">Choose a destination to get route and weather advice.</p>
+  <div class="glow"></div>
+ </section>
+</aside>
+
+<aside class="side right" id="right">
+ <section class="card stats" data-sheet="stats">
+  <h2><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 13l4-4M12 3V1"/></svg>Ride statistics</h2>
+  <div class="q">
+   <div><i><svg viewBox="0 0 24 24"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg></i><small>Speed</small><b id="sSpeed">0</b><em>km/h</em></div>
+   <div><i><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"/></svg></i><small>Average</small><b id="sAvg">0</b><em>km/h</em></div>
+   <div><i><svg viewBox="0 0 24 24"><path d="M4 19h16M4 15l4-8 4 6 3-4 5 6"/></svg></i><small>Distance</small><b id="sDist">0.0</b><em>km</em></div>
+   <div><i><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></i><small>Time</small><b id="sTime">0:00</b><em id="sMax">max 0</em></div>
+  </div>
+ </section>
+
+ <section class="card spark" data-sheet="stats">
+  <h2><svg viewBox="0 0 24 24"><path d="M4 20V9M9 20V4M14 20v-8M19 20v-5"/></svg>Speed history</h2>
+  <div class="bars" id="bars"></div>
+  <div class="legend"><span><i class="lg1"></i>Easy &lt;25</span><span><i class="lg2"></i>Cruise 25–60</span><span><i class="lg3"></i>Fast 60+</span></div>
+ </section>
+
+ <section class="card elev" data-sheet="route">
+  <h2><svg viewBox="0 0 24 24"><path d="m3 20 6-10 4 6 3-4 5 8z"/></svg>Route profile</h2>
+  <div class="chips"><span class="chip lime sm" id="routeChip">No route yet</span></div>
+  <div class="elab" id="elab"><span>Start</span><span>Finish</span></div>
+  <svg id="elevSvg" viewBox="0 0 300 90" preserveAspectRatio="none"></svg>
+  <div class="trio"><div><small>Distance</small><b id="rDist">—</b></div><div><small>Ride time</small><b id="rTime">—</b></div><div><small>Climb</small><b id="rClimb">—</b></div></div>
+ </section>
+
+ <section class="card turns" data-sheet="route">
+  <h2><svg viewBox="0 0 24 24"><path d="M9 18 15 12 9 6"/></svg>Turn by turn</h2>
+  <ol id="turnList"><li class="empty">Turns will appear here.</li></ol>
+ </section>
+</aside>
+
+<div class="dock" id="dock">
+ <button class="dbtn" id="zoomOut" title="Zoom out">−</button>
+ <div class="hub">
+  <button class="arrowb" id="prevStep" title="Previous turn"><svg viewBox="0 0 24 24"><path d="M15 18 9 12l6-6"/></svg></button>
+  <div class="mini3"><b id="dRemain">—</b><small>km left</small></div>
+  <button class="go" id="goBtn"><b id="goTxt">START</b><small id="goSub">ride</small></button>
+  <div class="mini3"><b id="dEta">—</b><small>arrive</small></div>
+  <button class="arrowb" id="nextStep" title="Next turn"><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>
+ </div>
+ <button class="dbtn" id="zoomIn" title="Zoom in">+</button>
+ <button class="dbtn" id="recenter" title="Follow my position"><svg viewBox="0 0 24 24"><path d="M12 2 4 21l8-4 8 4z"/></svg></button>
+</div>
+
+<div id="sheet"><div class="grab"></div><div class="stabs" id="stabs"><button data-tab="ride" class="on">Ride</button><button data-tab="route">Route</button><button data-tab="stats">Stats</button></div><div class="sbody" id="sbody"></div></div>
+<button class="sheetbtn" id="sheetBtn"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>Details</span></button>
+<button class="demo" id="demoBtn" hidden title="Simulate the ride">▶ Demo ride</button>
+<div id="toast"></div>
+<script src="ride.js"></script>
+</body>
+</html>

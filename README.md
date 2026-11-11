@@ -20,3 +20,6 @@ Libraries (pdf-lib, pdf.js, JSZip, SheetJS, PptxGenJS, mammoth, html2pdf, jsPDF,
 
 ## Image tools
 `images.html` — 22 image tools (compress, resize, crop, upscale, remove metadata, convert to JPG/PNG/WEBP, image to PDF, base64, favicon generator, HTML to image, rotate, flip, watermark, border & shape, filters, blur & pixelate, remove background, meme generator, collage, color picker). Code: `assets/imgtools.js`.
+
+## RideLine (bike navigation)
+`ride/` — a phone-first bike navigation web app: glowing route on a satellite map, next-turn card, voice guidance, re-routing, ride stats, weather and elevation. Open `ride/index.html` (needs HTTPS for GPS). Uses Leaflet, Esri/CARTO/OSM tiles, OSRM (routing.openstreetmap.de), Nominatim and Open-Meteo.
