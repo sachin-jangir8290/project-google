@@ -72,7 +72,7 @@ function onPos(p){const c=p.coords,ll=[c.latitude,c.longitude],now=p.timestamp||
  const first=!me;me=ll;drawMe();
  if(follow&&(riding||first))map.setView(ll,riding?Math.max(map.getZoom(),16):Math.max(map.getZoom(),15),{animate:!first});
  if(first&&to&&!route)plan();
- if(riding)progress();renderStats()}
+ if(riding)progress();renderStats();window.SAFE&&SAFE.onPos()}
 function drawMe(){const html=`<div class="rider"><span class="pulse"></span><span class="core" style="transform:rotate(${heading}deg)">${S('<path d="M12 3 6 20l6-4 6 4z"/>')}</span></div>`;
  if(!riderMk){riderMk=L.marker(me,{icon:L.divIcon({className:'',html,iconSize:[46,46],iconAnchor:[23,23]}),zIndexOffset:1000,interactive:false}).addTo(map);accCircle=L.circle(me,{radius:myAcc,color:'#d6f53f',weight:1,opacity:.4,fillOpacity:.06,interactive:false}).addTo(map)}
  else{riderMk.setLatLng(me);const core=riderMk.getElement()&&riderMk.getElement().querySelector('.core');if(core)core.style.transform=`rotate(${heading}deg)`;accCircle.setLatLng(me).setRadius(Math.min(myAcc,200))}}
@@ -102,7 +102,7 @@ async function plan(opts={}){if(!to)return;const a=opts.from||(from?[from.lat,fr
  $('statusChip').textContent=opts.reroute?'Re-routing…':'Finding route…';
  try{const url=`https://routing.openstreetmap.de/routed-${profile}/route/v1/driving/${a[1]},${a[0]};${to.lng},${to.lat}?overview=full&geometries=geojson&steps=true&alternatives=false`;
   const j=await (await fetch(url)).json();if(j.code!=='Ok'||!j.routes||!j.routes.length)throw new Error(j.message||'No route');
-  build(j.routes[0]);draw(!opts.reroute);weather();elevation();rerouting=false;offCount=0;
+  build(j.routes[0]);draw(!opts.reroute);weather();elevation();window.SAFE&&SAFE.onRoute();rerouting=false;offCount=0;
   $('statusChip').textContent=riding?'Navigating':'Route ready';$('destTitle').textContent=to.name;$('demoBtn').hidden=riding;
   if(opts.reroute)say('Route recalculated')}
  catch(e){rerouting=false;$('statusChip').textContent='No route';toast('Could not find a route. Check your connection or try another place.')}}
@@ -113,7 +113,8 @@ function build(r){const co=r.geometry.coordinates.map(([x,y])=>[y,x]),cum=[0];fo
 function draw(fit){rl.clearLayers();doneLine=null;const co=route.co;
  L.polyline(co,{color:'#0b120c',weight:12,opacity:.55,interactive:false}).addTo(rl);
  L.polyline(co,{color:'#d6f53f',weight:20,opacity:.22,interactive:false,className:'glow'}).addTo(rl);
- L.polyline(co,{color:'#d6f53f',weight:6,opacity:1,interactive:false}).addTo(rl);
+ L.polyline(co,{color:'#d6f53f',weight:9,opacity:.28,interactive:false}).addTo(rl);
+ L.polyline(co,{color:'#d6f53f',weight:6,opacity:1,interactive:false,dashArray:'0 12',lineCap:'round'}).addTo(rl);
  doneLine=L.polyline([],{color:'#7d8a78',weight:6,opacity:.95,interactive:false}).addTo(rl);
  const turns=route.steps.filter(s=>s.type!=='depart'&&s.type!=='arrive'),every=Math.max(1,Math.ceil(turns.length/18));
  turns.forEach((s,i)=>{L.marker(s.ll,{icon:L.divIcon({className:'',html:'<div class="tdot"></div>',iconSize:[12,12],iconAnchor:[6,6]}),interactive:false}).addTo(rl);
@@ -124,8 +125,9 @@ function draw(fit){rl.clearLayers();doneLine=null;const co=route.co;
  if(fit){const ph=isPhone();map.fitBounds(L.latLngBounds(co),{paddingTopLeft:ph?[30,170]:[350,160],paddingBottomRight:ph?[30,150]:[360,140],maxZoom:17})}
  $('turnList').innerHTML=route.steps.map((s,i)=>`<li data-i="${i}"><span class="ti">${turnIcon(s.type,s.mod)}</span><span>${s.text}</span><small>${fmtD(s.cum)}</small></li>`).join('');
  $('rDist').textContent=fmtD(route.dist);$('rTime').textContent=fmtT(route.dur);$('routeChip').textContent=`${route.steps.length-2} turns · ${profile==='car'?'Motorbike':'Cycle'}`;
- dock();showNext()}
-$('turnList').onclick=e=>{const li=e.target.closest('li[data-i]');if(!li||!route)return;const i=+li.dataset.i;stepView=i;follow=false;$('recenter').classList.remove('on');map.flyTo(route.steps[i].ll,17,{duration:.6});showNext(i);if(isPhone())closeSheet()};
+ dock();showNext();summary()}
+function summary(){if(!route)return;$('summary').hidden=false;$('sumName').textContent=to.name;$('sumSub').textContent=`${fmtD(route.dist)} · ${profile==='car'?'Motorbike':'Cycle'} · ETA ${clock(new Date(Date.now()+route.dur*1000))}`;$('sumTime').textContent=fmtT(route.dur);$('sumDist').textContent=fmtD(route.dist);$('sumChip').textContent=$('routeChip').textContent.split('· ').pop()}
+$('turnList').onclick=e=>{const li=e.target.closest('li[data-i]');if(!li||!route)return;const i=+li.dataset.i;stepView=i;follow=false;$('recenter').classList.remove('on');map.flyTo(route.steps[i].ll,17,{duration:.6});showNext(i);if(isPhone())minSheet(true)};
 $('nextStep').onclick=()=>stepNav(1);$('prevStep').onclick=()=>stepNav(-1);
 function stepNav(d){if(!route)return;const base=stepView??route.idx;const i=Math.max(0,Math.min(route.steps.length-1,base+d));stepView=i;follow=false;$('recenter').classList.remove('on');map.flyTo(route.steps[i].ll,17,{duration:.5});showNext(i)}
 
@@ -143,7 +145,7 @@ function progress(){if(!route||!me)return;const p=project(me);route.pi=p.i;route
  if(!s.said.far&&dTo<600&&dTo>250){s.said.far=1;say(`In ${fmtD(Math.round(dTo/50)*50).replace('m','metres').replace('km','kilometres')}, ${s.text}`)}
  if(!s.said.near&&dTo<=130&&dTo>35){s.said.near=1;say(`In ${Math.round(dTo/10)*10} metres, ${s.text}`)}
  if(!s.said.now&&dTo<=35){s.said.now=1;say(s.text)}
- document.querySelectorAll('#turnList li').forEach((li,i)=>{li.classList.toggle('done',i<ni);li.classList.toggle('on',i===ni)});dock()}
+ document.querySelectorAll('#turnList li').forEach((li,i)=>{li.classList.toggle('done',i<ni);li.classList.toggle('on',i===ni)});dock();window.SAFE&&SAFE.onProgress(p.along)}
 function showNext(i,dTo){if(!route){$('next').hidden=true;return}i=i??route.idx??1;if(i===0&&route.steps.length>1&&!riding)i=1;const s=route.steps[i];if(!s)return;
  $('next').hidden=false;$('nicon').innerHTML=turnIcon(s.type,s.mod);$('ninstr').textContent=s.text;
  const d=dTo??(s.cum-(route.along||0));$('ndist').textContent=fmtD(d);$('next').classList.toggle('soon',riding&&d<150);
@@ -156,9 +158,9 @@ function arrive(){say('You have arrived at your destination');toast('🏁 You ha
 $('goBtn').onclick=()=>riding?stopRide():startRide();
 async function startRide(){startWatch();riding=true;follow=true;stepView=null;$('recenter').classList.add('on');Object.assign(stats,{t0:Date.now(),dist:0,moving:0,max:0,hist:[]});
  $('goBtn').classList.add('stop');$('goTxt').textContent='STOP';$('goSub').textContent=route?'navigating':'free ride';$('liveChip').hidden=false;$('statusChip').textContent=route?'Navigating':'Free ride';$('demoBtn').hidden=true;
- if(route){route.steps.forEach(s=>s.said={});say(route.steps[0].text);if(me)progress()}if(me)map.setView(me,17);
+ window.SAFE&&SAFE.onStart();if(route){route.steps.forEach(s=>s.said={});say('Ride started. Wear your helmet. '+route.steps[0].text);if(me)progress()}if(me)map.setView(me,17);
  clearInterval(stats.tick);stats.tick=setInterval(()=>{const sp=stats.speed*3.6;stats.hist.push(sp);if(stats.hist.length>36)stats.hist.shift();renderStats()},2000);
- try{wake=await navigator.wakeLock.request('screen')}catch(_){};if(isPhone())closeSheet()}
+ try{wake=await navigator.wakeLock.request('screen')}catch(_){};if(isPhone())openSheet('ride')}
 function stopRide(arrived){riding=false;clearInterval(stats.tick);if(demo){clearInterval(demo);demo=null}
  $('goBtn').classList.remove('stop');$('goTxt').textContent='START';$('goSub').textContent='ride';$('liveChip').hidden=true;if(!arrived)$('statusChip').textContent=route?'Route ready':'Plan a ride';$('demoBtn').hidden=!route;
  try{wake&&wake.release()}catch(_){}wake=null;renderStats()}
@@ -206,62 +208,28 @@ async function elevation(){if(!route)return;const n=Math.min(90,Math.max(10,Math
   $('elevSvg').innerHTML=`<defs><linearGradient id="eg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d6f53f" stop-opacity=".55"/><stop offset="1" stop-color="#d6f53f" stop-opacity="0"/></linearGradient></defs>
    <path d="M0 ${H} ${line.slice(1)} L${W} ${H}Z" fill="url(#eg)"/><path d="${line}" fill="none" stroke="#d6f53f" stroke-width="2" vector-effect="non-scaling-stroke"/>
    <circle cx="${xy[xy.length-1][0]}" cy="${xy[xy.length-1][1]}" r="4" fill="#d6f53f"/>`;
-  $('rClimb').textContent=Math.round(climb)+' m';$('elab').innerHTML=`<span>Low ${Math.round(mn)} m</span><span>High ${Math.round(mx)} m</span>`;$('routeChip').textContent=`${route.steps.length-2} turns · ${climb/route.dist*1000>15?'Hilly':climb/route.dist*1000>5?'Rolling':'Mostly flat'}`}
+  $('rClimb').textContent=Math.round(climb)+' m';setTimeout(summary,0);$('elab').innerHTML=`<span>Low ${Math.round(mn)} m</span><span>High ${Math.round(mx)} m</span>`;$('routeChip').textContent=`${route.steps.length-2} turns · ${climb/route.dist*1000>15?'Hilly':climb/route.dist*1000>5?'Rolling':'Mostly flat'}`}
  catch(_){$('rClimb').textContent='—';$('elevSvg').innerHTML='<text x="150" y="50" text-anchor="middle" fill="#a6b3a2" font-size="12">Elevation unavailable</text>'}}
 
 // ---------- tabs & mobile sheet ----------
-const home=new Map();
-function openSheet(tab){document.body.classList.add('sheet');document.querySelectorAll('#stabs button,#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
- const body=$('sbody');[...body.children].forEach(back);const cards=[...document.querySelectorAll('.side .card')].filter(c=>(tab==='ride'&&c.classList.contains('now'))||c.dataset.sheet===tab);
- cards.forEach(c=>{if(!home.has(c))home.set(c,{p:c.parentNode,n:c.nextSibling});body.append(c)})}
+const home=new Map();let curTab='home';
+function openSheet(tab){curTab=tab;document.body.classList.add('sheet');document.body.classList.remove('sheetmin');
+ document.querySelectorAll('#bnav button,#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===tab));
+ const body=$('sbody');[...body.children].forEach(back);
+ const cards=[...document.querySelectorAll('.side .card')].filter(c=>(c.dataset.sheet||'').split(' ').includes(tab));
+ cards.forEach(c=>{if(!home.has(c))home.set(c,{p:c.parentNode,n:c.nextSibling});body.append(c)});body.scrollTop=0}
 function back(c){const h=home.get(c);if(h)h.p.insertBefore(c,h.n&&h.n.parentNode===h.p?h.n:null);home.delete(c)}
-function closeSheet(){document.body.classList.remove('sheet');[...$('sbody').children].forEach(back)}
-$('sheetBtn').onclick=()=>document.body.classList.contains('sheet')?closeSheet():openSheet('ride');
-$('stabs').onclick=e=>{const b=e.target.closest('button');if(b)openSheet(b.dataset.tab)};
-$('tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));const c=document.querySelector(`.side [data-sheet="${b.dataset.tab}"]`);if(c)c.scrollIntoView({behavior:'smooth',block:'nearest'});if(b.dataset.tab==='route'&&route){follow=false;map.fitBounds(L.latLngBounds(route.co),{paddingTopLeft:[350,160],paddingBottomRight:[360,140]})}};
-matchMedia('(max-width:860px)').addEventListener('change',()=>closeSheet());
+function closeSheet(){document.body.classList.remove('sheet','sheetmin');[...$('sbody').children].forEach(back)}
+function minSheet(on=true){document.body.classList.toggle('sheetmin',on)}
+$('grab').onclick=()=>minSheet(!document.body.classList.contains('sheetmin'));
+$('sheetBtn').onclick=()=>document.body.classList.contains('sheet')?closeSheet():openSheet('home');
+$('bnav').onclick=e=>{const b=e.target.closest('button');if(!b)return;if(b.dataset.tab===curTab&&document.body.classList.contains('sheet')&&!document.body.classList.contains('sheetmin')){minSheet(true);return}openSheet(b.dataset.tab)};
+$('tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));
+ const c=document.querySelector(`.side [data-sheet~="${b.dataset.tab}"]`);if(c)c.scrollIntoView({behavior:'smooth',block:'nearest'});
+ if(b.dataset.tab==='home'&&route){follow=false;map.fitBounds(L.latLngBounds(route.co),{paddingTopLeft:[350,160],paddingBottomRight:[360,140]})}};
+const mq=matchMedia('(max-width:860px)');mq.addEventListener('change',()=>mq.matches?openSheet(curTab):closeSheet());
+if(mq.matches)openSheet('home');
 
 // ---------- boot ----------
 startWatch();
 if('serviceWorker' in navigator){}
-
-// ---------- Traffic Eye: on-device vehicle detection with the camera ----------
-const EYE={on:false,stream:null,model:null,busy:false,timer:null,last:[],lastWarn:0,hist:[]};
-const VCLS={car:{n:'Cars',h:1.5},motorcycle:{n:'Bikes',h:1.2},truck:{n:'Trucks',h:3.2},bus:{n:'Buses',h:3.2},bicycle:{n:'Cycles',h:1.1},person:{n:'People',h:1.7}};
-const VORDER=['car','motorcycle','truck','bus','bicycle','person'];
-const loadScript=src=>new Promise((ok,no)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=()=>no(new Error('load '+src));document.head.append(s)});
-async function eyeModel(){if(EYE.model)return EYE.model;
- if(!window.tf)await loadScript('https://cdnjs.cloudflare.com/ajax/libs/tensorflow/4.20.0/tf.min.js');
- if(!window.cocoSsd)await loadScript('https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js');
- EYE.model=await cocoSsd.load({base:'lite_mobilenet_v2'});return EYE.model}
-async function eyeOpen(){if(EYE.on)return;EYE.on=true;document.body.classList.add('eyeon');$('eye').hidden=false;$('eyeBtn').classList.add('on');renderAround([]);
- try{EYE.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false});$('cam').srcObject=EYE.stream;await $('cam').play()}
- catch(e){$('eyeNote').textContent='Camera not available. Allow camera access in your browser settings.';toast('Camera permission is needed for Traffic Eye');return}
- $('eyeNote').textContent='Loading vehicle detector… (first time needs internet)';
- try{await eyeModel();$('eyeNote').textContent='Mount the phone facing the road. Counts are estimates from the camera view.';eyeLoop()}
- catch(e){$('eyeNote').textContent='Could not load the detector. Check your internet connection and try again.'}
- try{if(!wake)wake=await navigator.wakeLock.request('screen')}catch(_){}}
-function eyeClose(){EYE.on=false;clearTimeout(EYE.timer);document.body.classList.remove('eyeon');$('eye').hidden=true;$('eyeBtn').classList.remove('on');$('warn').hidden=true;
- if(EYE.stream){EYE.stream.getTracks().forEach(t=>t.stop());EYE.stream=null}const c=$('boxes');c.getContext('2d').clearRect(0,0,c.width,c.height)}
-$('eyeBtn').onclick=()=>EYE.on?eyeClose():eyeOpen();$('eyeClose').onclick=eyeClose;
-async function eyeLoop(){if(!EYE.on)return;const v=$('cam');
- if(v.readyState>=2&&!EYE.busy){EYE.busy=true;try{const preds=await EYE.model.detect(v,25,0.45);eyeFrame(preds.filter(p=>VCLS[p.class]))}catch(_){}EYE.busy=false}
- EYE.timer=setTimeout(eyeLoop,document.hidden?1000:180)}
-function eyeFrame(preds){const v=$('cam'),c=$('boxes'),W=c.clientWidth,H=c.clientHeight,dpr=Math.min(2,devicePixelRatio||1);
- if(c.width!==W*dpr||c.height!==H*dpr){c.width=W*dpr;c.height=H*dpr}const x=c.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,W,H);
- const vw=v.videoWidth||1,vh=v.videoHeight||1,sc=Math.max(W/vw,H/vh),ox=(W-vw*sc)/2,oy=(H-vh*sc)/2,f=vh/(2*Math.tan(rad(48)/2));
- const items=preds.map(p=>{const [bx,by,bw,bh]=p.bbox,cx=(bx+bw/2)/vw,d=VCLS[p.class].h*f/Math.max(8,bh),ahead=cx>.3&&cx<.7&&by+bh>vh*.35;return {...p,d,ahead,r:[ox+bx*sc,oy+by*sc,bw*sc,bh*sc]}});
- const near=items.filter(i=>i.ahead&&i.class!=='person').sort((a,b)=>a.d-b.d)[0];
- const now=performance.now();EYE.hist.push({t:now,d:near?near.d:null});EYE.hist=EYE.hist.filter(h=>now-h.t<1500);
- const old=EYE.hist.find(h=>h.d!=null),closing=near&&old&&old.d>near.d*1.25&&now-old.t>500,close=near&&(near.d<6||(near.d<12&&closing));
- for(const i of items){const hot=near&&i===near&&close,col=hot?'#ff4d4f':i.ahead?'#d6f53f':'rgba(255,255,255,.85)',[rx,ry,rw,rh]=i.r;
-  x.lineWidth=i.ahead?3.5:2;x.strokeStyle=col;x.beginPath();x.roundRect?x.roundRect(rx,ry,rw,rh,8):x.rect(rx,ry,rw,rh);x.stroke();
-  const label=`${VCLS[i.class].n.replace(/s$/,'').replace('Buse','Bus').replace('People','Person')} ~${Math.round(i.d)} m`;x.font='700 13px Urbanist,sans-serif';const tw=x.measureText(label).width+14;
-  x.fillStyle=col;x.beginPath();x.roundRect?x.roundRect(rx,Math.max(0,ry-24),tw,22,11):x.rect(rx,Math.max(0,ry-24),tw,22);x.fill();x.fillStyle='#0b120c';x.fillText(label,rx+7,Math.max(0,ry-24)+15)}
- renderAround(items,near,close);
- if(close&&now-EYE.lastWarn>4000){EYE.lastWarn=now;say(`${VCLS[near.class].n.replace(/s$/,'').replace('Buse','Bus')} close ahead`);if(navigator.vibrate)navigator.vibrate([200,100,200])}
- $('warn').hidden=!close}
-function renderAround(items,near,close){const cnt={};VORDER.forEach(k=>cnt[k]=0);items.forEach(i=>cnt[i.class]++);
- $('vgrid').innerHTML=VORDER.map(k=>`<div class="${cnt[k]?'has':''}"><b>${cnt[k]}</b><small>${VCLS[k].n}</small></div>`).join('');
- const a=$('ahead');a.classList.toggle('close',!!close);$('aheadTxt').textContent=near?`${VCLS[near.class].n.replace(/s$/,'').replace('Buse','Bus')} · about ${Math.round(near.d)} m`:'Clear road'}
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&EYE.on&&EYE.stream){}});

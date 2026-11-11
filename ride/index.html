@@ -22,12 +22,15 @@
 <header class="top">
  <a class="brand" href="./"><span class="bmark"><svg viewBox="0 0 24 24"><circle cx="6" cy="16" r="3.4"/><circle cx="18" cy="16" r="3.4"/><path d="M6 16l4-7h5l3 7M10 9l-1.5-3H6M15 9l1-3h2"/></svg></span>Ride<b>Line</b></a>
  <nav class="pills" id="tabs">
-  <button data-tab="ride" class="on"><svg viewBox="0 0 24 24"><path d="M12 2 4 21l8-4 8 4z"/></svg>Ride</button>
-  <button data-tab="route"><svg viewBox="0 0 24 24"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h7"/></svg>Route</button>
+  <button data-tab="home" class="on"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>Home</button>
+  <button data-tab="ride"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16 8-2 6-6 2 2-6z"/></svg>Ride</button>
+  <button data-tab="route" hidden><svg viewBox="0 0 24 24"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h7"/></svg>Route</button>
   <button data-tab="stats"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Stats</button>
+  <button data-tab="safety"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>Safety</button>
  </nav>
  <div class="tright">
   <button class="round" id="voiceBtn" title="Voice guidance" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4zM15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></button>
+  <button class="round sosb" id="sosBtn" title="Emergency SOS">SOS</button>
   <button class="round eyeb" id="eyeBtn" title="Traffic Eye: detect vehicles with the camera"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span>Traffic Eye</span></button>
   <button class="round" id="layerBtn" title="Map style"><svg viewBox="0 0 24 24"><path d="m12 2 10 5-10 5L2 7z"/><path d="m2 12 10 5 10-5M2 17l10 5 10-5"/></svg></button>
  </div>
@@ -45,31 +48,85 @@
   <div class="meta"><span id="metaDate">—</span><span id="metaEta"></span></div>
  </section>
 
- <section class="card plan" data-sheet="route">
+ <section class="card homehead" data-sheet="home">
+  <div class="hh"><div><h1 id="hello">Hello, Rider</h1><p>Where would you like to ride?</p></div><button class="avatar" id="avatarBtn" title="Your profile">R</button></div>
+ </section>
+
+ <section class="card plan" data-sheet="home">
   <h2><svg viewBox="0 0 24 24"><circle cx="12" cy="10" r="3"/><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/></svg>Plan route</h2>
   <div class="field"><span class="dot a"></span><input id="from" placeholder="Start: My location" autocomplete="off"><button class="mini" id="useLoc" title="Use my location"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button></div>
   <div class="field"><span class="dot b"></span><input id="to" placeholder="Destination" autocomplete="off"></div>
   <ul class="sugg" id="sugg" hidden></ul>
+  <div class="qchips" id="qchips"><button data-q="fuel">⛽ Fuel</button><button data-q="hospital">🏥 Hospital</button><button data-q="police">👮 Police</button><button data-q="last" id="qLast" hidden>↺ Last trip</button></div>
   <div class="seg" id="profile"><button data-p="car" class="on">Motorbike</button><button data-p="bike">Cycle</button></div>
   <p class="hint">Tip: long-press / right-click the map to set a destination.</p>
  </section>
 
- <section class="card cond" data-sheet="ride">
+ <section class="card summary" data-sheet="home" id="summary" hidden>
+  <div class="sumtop"><div><small class="eyebrow">Your route</small><h3 id="sumName">—</h3><small id="sumSub">—</small></div><span class="chip lime sm" id="sumChip">—</span></div>
+  <div class="sumstats">
+   <div><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span><b id="sumTime">—</b><small>Duration</small></span></div>
+   <div><svg viewBox="0 0 24 24"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h7"/></svg><span><b id="sumDist">—</b><small>Distance</small></span></div>
+   <div><svg viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/></svg><span><b id="sumHaz">0</b><small>Hazards</small></span></div>
+  </div>
+  <button class="startpill" id="startPill">Start your ride <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+ </section>
+
+ <section class="card cond" data-sheet="home">
   <h2><svg viewBox="0 0 24 24"><path d="M9.6 4.6A2 2 0 1 1 11 8H2M12.6 19.4A2 2 0 1 0 14 16H2M17.5 8a2.5 2.5 0 1 1 2 4H2"/></svg>Ride conditions</h2>
   <span class="chip lime sm" id="windChip">Wind —</span>
   <div class="big"><b id="windSpd">—</b><span id="windDir">km/h</span></div>
   <div class="duo"><div><b id="temp">—</b><small>Temperature</small></div><div><b id="rain">—</b><small>Rain chance</small></div></div>
  </section>
 
- <section class="card tip" data-sheet="ride">
+ <section class="card tip" data-sheet="home">
   <h2><svg viewBox="0 0 24 24"><path d="m12 3 1.9 5.8H20l-5 3.6 1.9 5.8L12 14.6l-5 3.6L9 12.4 4 8.8h6.1z"/></svg>Ride tip</h2>
   <small class="upd" id="tipUpd">● Updated now</small>
   <p id="tipText">Choose a destination to get route and weather advice.</p>
   <div class="glow"></div>
  </section>
+
+ <section class="card safe" data-sheet="safety">
+  <h2><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>Rider safety</h2>
+  <label class="tog"><span><b>Crash detection</b><small>Detects a hard fall and starts SOS</small></span><input type="checkbox" id="optCrash" checked><i></i></label>
+  <label class="tog"><span><b>Hazard warnings</b><small>Speed breakers, schools, cameras, sharp curves</small></span><input type="checkbox" id="optHaz" checked><i></i></label>
+  <label class="tog"><span><b>Rain radar on map</b><small>Live rain from the last 2 hours</small></span><input type="checkbox" id="optRain"><i></i></label>
+  <label class="tog"><span><b>Break reminder</b><small>Every 2 hours of riding</small></span><input type="checkbox" id="optRest" checked><i></i></label>
+  <div class="row2"><span><b>My speed alert</b><small>Used when the road has no speed limit data</small></span><select id="optMax"><option>40</option><option>50</option><option selected>60</option><option>80</option><option>100</option></select></div>
+ </section>
+
+ <section class="card sosc" data-sheet="safety">
+  <h2><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>Emergency contact</h2>
+  <div class="field"><input id="riderName" placeholder="Your name" autocomplete="off"></div>
+  <div class="field"><input id="sosName" placeholder="Name (e.g. Brother)" autocomplete="off"></div>
+  <div class="field"><input id="sosPhone" placeholder="Phone number" inputmode="tel" autocomplete="off"></div>
+  <p class="hint">Saved only on this phone. Used by SOS and crash detection.</p>
+ </section>
+
+ <section class="card help" data-sheet="safety">
+  <h2><svg viewBox="0 0 24 24"><path d="M12 2v20M2 12h20"/></svg>Nearby help</h2>
+  <ul class="hl" id="helpList"><li class="empty">Finding hospitals, fuel and police near you…</li></ul>
+ </section>
+
+ <section class="card haz" data-sheet="safety">
+  <h2><svg viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0zM12 9v4M12 17h.01"/></svg>Hazards on route</h2>
+  <div class="hgrid" id="hazGrid"><p class="hint">Plan a route to see speed breakers, schools, speed cameras and sharp curves.</p></div>
+ </section>
 </aside>
 
 <aside class="side right" id="right">
+ <section class="card ridecard" data-sheet="ride">
+  <h2 class="ctr">Ride details</h2>
+  <div class="tiles">
+   <div><small><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Duration</small><b id="rdTime">0 min</b><em id="rdTimeLeft">Not started</em></div>
+   <div><small><svg viewBox="0 0 24 24"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h7"/></svg>Distance</small><b id="rdDist">0.0 km</b><em id="rdDistLeft">No route</em></div>
+  </div>
+  <div class="compass" id="compass"><svg id="dial" viewBox="0 0 220 220" aria-hidden="true"></svg><div class="ccenter"><b id="hdg">0°</b><small id="hdgDir">N</small></div><span class="cl n">N</span><span class="cl e">E</span><span class="cl s">S</span><span class="cl w">W</span></div>
+  <div class="tiles sm"><div><small>Speed</small><b><span id="rdSpd">0</span> <u>km/h</u></b></div><div><small id="rdLimL">Speed alert</small><b><span id="rdLim">60</span> <u>km/h</u></b></div></div>
+  <button class="startpill" id="rideGo">Start ride <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+  <button class="emerg" id="emergBtn"><svg viewBox="0 0 24 24"><path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1zM16 8a5 5 0 0 1 0 8M19 5a9 9 0 0 1 0 14"/></svg>Emergency alert</button>
+ </section>
+
  <section class="card stats" data-sheet="stats">
   <h2><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 13l4-4M12 3V1"/></svg>Ride statistics</h2>
   <div class="q">
@@ -86,7 +143,7 @@
   <div class="legend"><span><i class="lg1"></i>Easy &lt;25</span><span><i class="lg2"></i>Cruise 25–60</span><span><i class="lg3"></i>Fast 60+</span></div>
  </section>
 
- <section class="card elev" data-sheet="route">
+ <section class="card elev" data-sheet="stats">
   <h2><svg viewBox="0 0 24 24"><path d="m3 20 6-10 4 6 3-4 5 8z"/></svg>Route profile</h2>
   <div class="chips"><span class="chip lime sm" id="routeChip">No route yet</span></div>
   <div class="elab" id="elab"><span>Start</span><span>Finish</span></div>
@@ -94,13 +151,14 @@
   <div class="trio"><div><small>Distance</small><b id="rDist">—</b></div><div><small>Ride time</small><b id="rTime">—</b></div><div><small>Climb</small><b id="rClimb">—</b></div></div>
  </section>
 
- <section class="card turns" data-sheet="route">
+ <section class="card turns" data-sheet="stats">
   <h2><svg viewBox="0 0 24 24"><path d="M9 18 15 12 9 6"/></svg>Turn by turn</h2>
   <ol id="turnList"><li class="empty">Turns will appear here.</li></ol>
  </section>
 </aside>
 
 <div class="dock" id="dock">
+ <div class="spdw" id="spdw"><div class="limit" id="limit" title="Speed limit"><b id="limitV">60</b><small id="limitS">alert</small></div><div class="cur" id="curSpd"><b id="curV">0</b><small>km/h</small></div></div>
  <button class="dbtn" id="zoomOut" title="Zoom out">−</button>
  <div class="hub">
   <button class="arrowb" id="prevStep" title="Previous turn"><svg viewBox="0 0 24 24"><path d="M15 18 9 12l6-6"/></svg></button>
@@ -113,7 +171,13 @@
  <button class="dbtn" id="recenter" title="Follow my position"><svg viewBox="0 0 24 24"><path d="M12 2 4 21l8-4 8 4z"/></svg></button>
 </div>
 
-<div id="sheet"><div class="grab"></div><div class="stabs" id="stabs"><button data-tab="ride" class="on">Ride</button><button data-tab="route">Route</button><button data-tab="stats">Stats</button></div><div class="sbody" id="sbody"></div></div>
+<div id="sheet"><button class="grab" id="grab" aria-label="Collapse or expand"></button><div class="stabs" id="stabs" hidden></div><div class="sbody" id="sbody"></div></div>
+<nav class="bnav" id="bnav">
+ <button data-tab="home" class="on"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg><span>Home</span></button>
+ <button data-tab="ride"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16 8-2 6-6 2 2-6z"/></svg><span>Ride</span></button>
+ <button data-tab="safety"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg><span>Safety</span></button>
+ <button data-tab="stats"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Stats</span></button>
+</nav>
 <button class="sheetbtn" id="sheetBtn"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>Details</span></button>
 <button class="demo" id="demoBtn" hidden title="Simulate the ride">▶ Demo ride</button>
 <div class="eye" id="eye" hidden>
@@ -121,16 +185,39 @@
  <canvas id="boxes"></canvas>
  <div class="eyehud">
   <section class="card around">
-   <h2><svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>Around you <span class="chip live sm2" id="eyeLive">● LIVE</span></h2>
+   <h2><svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span id="eyeTitle">Ahead of you</span> <span class="chip live sm2" id="eyeLive">● LIVE</span></h2>
+   <div class="eyectl"><div class="seg" id="eyeMode"><button data-m="front" class="on">Front view</button><button data-m="rear">Rear guard</button></div><button class="flip" id="eyeFlip" title="Switch camera"><svg viewBox="0 0 24 24"><path d="M20 7h-3l-2-3H9L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/><path d="m15 11-2-2-2 2M9 15l2 2 2-2M13 9v4a2 2 0 0 1-2 2"/></svg></button></div>
    <div class="vgrid" id="vgrid"></div>
-   <div class="ahead" id="ahead"><small>Nearest ahead</small><b id="aheadTxt">Clear road</b></div>
+   <div class="ahead" id="ahead"><small id="aheadLbl">Nearest ahead</small><b id="aheadTxt">Clear road</b></div>
    <p class="eyenote" id="eyeNote">Loading vehicle detector…</p>
   </section>
  </div>
  <div class="warn" id="warn" hidden>⚠ Vehicle close ahead</div>
  <button class="eyeclose" id="eyeClose">Close camera</button>
 </div>
+<div class="radar" id="radar" hidden>
+ <div class="rhead"><span>L</span><span id="radarMid">Behind</span><span>R</span></div>
+ <div class="rbody"><div class="lane" data-z="left"></div><div class="lane" data-z="center"></div><div class="lane" data-z="right"></div><span class="me"></span></div>
+ <small id="radarTxt">Clear</small>
+</div>
+<div class="sos" id="sos" hidden>
+ <div class="sosbox">
+  <h2 id="sosTitle">Emergency</h2>
+  <p id="sosMsg">Get help fast. Your live location is included.</p>
+  <div class="count" id="sosCount" hidden><b id="sosN">30</b><small>seconds — alert will open automatically</small></div>
+  <button class="ok" id="sosOk">I'm OK — cancel</button>
+  <div class="acts">
+   <a class="act red" id="sosCall112" href="tel:112">Call 112<small>Emergency</small></a>
+   <a class="act" id="sosCallC" href="#">Call contact<small id="sosCName">Add in Safety</small></a>
+   <a class="act" id="sosSms" href="#">SMS location<small>to your contact</small></a>
+   <a class="act" id="sosWa" href="#" target="_blank" rel="noopener">WhatsApp<small>share location</small></a>
+   <button class="act" id="sosHosp">Nearest hospital<small id="sosHospD">route there</small></button>
+  </div>
+  <p class="loc" id="sosLoc">Location: finding…</p>
+ </div>
+</div>
 <div id="toast"></div>
 <script src="ride.js"></script>
+<script src="safety.js"></script>
 </body>
 </html>
