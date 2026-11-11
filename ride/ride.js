@@ -62,22 +62,52 @@ function meta(){const d=new Date();$('metaDate').textContent='📅 '+d.toLocaleD
 meta();setInterval(meta,30000);
 
 // ---------- location ----------
+const GPS={fix:0,bad:0,lastGood:0,anim:null,shown:null,warned:0};
 function startWatch(){if(!('geolocation' in navigator)){toast('Location is not available on this device');return}
- if(watchId!=null)return;watchId=navigator.geolocation.watchPosition(p=>{if(!demo)onPos(p)},e=>{if(e.code===1)toast('Allow location access to see yourself on the map');},{enableHighAccuracy:true,maximumAge:2000,timeout:20000})}
-function onPos(p){const c=p.coords,ll=[c.latitude,c.longitude],now=p.timestamp||Date.now();myAcc=c.accuracy||10;
+ if(watchId!=null)return;gpsChip(null);
+ watchId=navigator.geolocation.watchPosition(p=>{if(!demo)onPos(p)},e=>{if(e.code===1){toast('Allow location access to see yourself on the map');gpsChip(-1)}else if(e.code===3)gpsChip(null)},{enableHighAccuracy:true,maximumAge:0,timeout:15000})}
+function gpsChip(acc){const e=$('gps');if(!e)return;e.hidden=false;
+ if(acc==null){e.className='gps wait';e.textContent='GPS · searching…';return}if(acc<0){e.className='gps bad';e.textContent='GPS off';return}
+ e.className='gps '+(acc<=15?'good':acc<=40?'ok':'bad');e.textContent=`GPS ±${Math.round(acc)} m`}
+function onPos(p){const c=p.coords,raw=[c.latitude,c.longitude],now=p.timestamp||Date.now(),acc=c.accuracy||30;GPS.fix++;gpsChip(acc);
+ // approximate-only location (Android "Approximate" setting) gives 1–3 km errors
+ if(acc>800){GPS.bad++;if(GPS.bad>=4&&!GPS.warned){GPS.warned=1;toast('Location is approximate. Turn on "Precise location" for this app in phone settings.')}}else GPS.bad=0;
+ // ignore a much worse fix right after good ones, and impossible jumps
+ if(me&&acc>Math.max(60,myAcc*3)&&now-GPS.lastGood<15000)return;
+ if(stats.last){const dj=hav(stats.last,raw),dtj=Math.max(.5,(now-stats.lastT)/1000);
+  if(dj/dtj>70){const near=GPS.jump&&hav(GPS.jump,raw)<60;GPS.jump=raw;GPS.jumpN=near?(GPS.jumpN||1)+1:1;if(GPS.jumpN<3)return;me=null;stats.last=null}else{GPS.jump=null;GPS.jumpN=0}}
+ GPS.lastGood=now;myAcc=acc;
+ // smooth: trust precise fixes more
+ let ll=raw;if(me&&!demo){const a=acc<=8?.9:acc<=20?.7:acc<=50?.5:.35;ll=[me[0]+(raw[0]-me[0])*a,me[1]+(raw[1]-me[1])*a]}
  let spd=c.speed!=null&&!isNaN(c.speed)?c.speed:null;
- if(stats.last){const d=hav(stats.last,ll),dt=(now-stats.lastT)/1000;if(spd==null&&dt>0)spd=d/dt;if(d>4)heading=c.heading!=null&&!isNaN(c.heading)?c.heading:bearing(stats.last,ll);
-  if(riding&&d>3&&myAcc<50&&d<500){stats.dist+=d;if((spd||0)>1)stats.moving+=dt}}
+ if(stats.last){const d=hav(stats.last,ll),dt=(now-stats.lastT)/1000;if(spd==null&&dt>0)spd=d/dt;
+  if(d>3&&(spd||0)>1.5)heading=c.heading!=null&&!isNaN(c.heading)&&c.heading>=0?c.heading:bearing(stats.last,ll);
+  if(riding&&d>3&&acc<50&&d<500){stats.dist+=d;if((spd||0)>1)stats.moving+=dt}}
  stats.speed=Math.max(0,spd||0);if(riding)stats.max=Math.max(stats.max,stats.speed);stats.last=ll;stats.lastT=now;
- const first=!me;me=ll;drawMe();
- if(follow&&(riding||first))map.setView(ll,riding?Math.max(map.getZoom(),16):Math.max(map.getZoom(),15),{animate:!first});
+ const first=!me;me=ll;
+ // while navigating, keep the marker on the road like a car navigator
+ let show=ll;if(route&&riding){const pr=project(ll);if(pr.d<Math.max(25,acc*1.2)){show=pr.pt;const k=Math.min(route.co.length-1,pr.i+1);if(stats.speed>1.5)heading=bearing(route.co[pr.i],route.co[k])}}
+ drawMe(show,first);
+ if(first&&acc>200)toast('Getting a precise GPS fix… move to open sky for best accuracy');
+ if(follow&&(riding||first)&&(acc<300||riding))followTo(show,riding?Math.max(map.getZoom(),17):Math.max(map.getZoom(),16));
  if(first&&to&&!route)plan();
  if(riding)progress();renderStats();window.SAFE&&SAFE.onPos();window.FEAT&&FEAT.onPos()}
-function drawMe(){const html=`<div class="rider"><span class="pulse"></span><span class="core" style="transform:rotate(${heading}deg)">${S('<path d="M12 3 6 20l6-4 6 4z"/>')}</span></div>`;
- if(!riderMk){riderMk=L.marker(me,{icon:L.divIcon({className:'',html,iconSize:[46,46],iconAnchor:[23,23]}),zIndexOffset:1000,interactive:false}).addTo(map);accCircle=L.circle(me,{radius:myAcc,color:'#d6f53f',weight:1,opacity:.4,fillOpacity:.06,interactive:false}).addTo(map)}
- else{riderMk.setLatLng(me);const core=riderMk.getElement()&&riderMk.getElement().querySelector('.core');if(core)core.style.transform=`rotate(${heading}deg)`;accCircle.setLatLng(me).setRadius(Math.min(myAcc,200))}}
+// keep the rider in the visible part of the map (between the top cards and the bottom sheet)
+function followTo(ll,z){z=z||map.getZoom();const H=map.getSize().y;let top=70,bot=H;
+ const nx=$('next');if(nx&&!nx.hidden){const r=nx.getBoundingClientRect();if(r.height)top=r.bottom+10}
+ if(isPhone()){const sh=$('sheet'),bn=$('bnav');if(document.body.classList.contains('sheet')&&!document.body.classList.contains('eyeon')){const r=sh.getBoundingClientRect();if(r.height)bot=r.top-10}else if(bn){bot=bn.getBoundingClientRect().top-10}}
+ else bot=H-110;
+ const ty=riding?top+(bot-top)*0.62:(top+bot)/2,p=map.project(ll,z),c=map.unproject(p.add([0,H/2-ty]),z);map.setView(c,z,{animate:true})}
+function riderHeading(){return stats.speed*3.6<6&&typeof devHdg!=='undefined'&&devHdg!=null?devHdg:heading}
+function drawMe(target,instant){target=target||me;const html=`<div class="rider"><span class="pulse"></span><span class="cone"></span><span class="core">${S('<path d="M12 3 6 20l6-4 6 4z"/>')}</span></div>`;
+ if(!riderMk){riderMk=L.marker(target,{icon:L.divIcon({className:'',html,iconSize:[46,46],iconAnchor:[23,23]}),zIndexOffset:1000,interactive:false}).addTo(map);accCircle=L.circle(target,{radius:Math.min(myAcc,300),color:'#d6f53f',weight:1,opacity:.45,fillOpacity:.07,interactive:false}).addTo(map);GPS.shown=target}
+ const from=GPS.shown||target;cancelAnimationFrame(GPS.anim);const t0=performance.now(),dur=instant||hav(from,target)>300?0:850;
+ const step=t=>{const k=dur?Math.min(1,(t-t0)/dur):1,e=1-(1-k)*(1-k),p=[from[0]+(target[0]-from[0])*e,from[1]+(target[1]-from[1])*e];GPS.shown=p;riderMk.setLatLng(p);accCircle.setLatLng(p);if(k<1)GPS.anim=requestAnimationFrame(step)};step(t0);
+ accCircle.setRadius(Math.min(myAcc,300));const el=riderMk.getElement(),core=el&&el.querySelector('.core'),cone=el&&el.querySelector('.cone'),h=riderHeading();
+ if(core)core.style.transform=`rotate(${h}deg)`;if(cone)cone.style.transform=`rotate(${h}deg)`}
+setInterval(()=>{if(riderMk&&stats.speed*3.6<6)drawMe(GPS.shown,true)},700);
 $('useLoc').onclick=()=>{from=null;$('from').value='';startWatch();if(me){map.setView(me,16);plan()}else toast('Finding your location…')};
-$('recenter').onclick=()=>{follow=true;$('recenter').classList.add('on');if(me)map.setView(me,Math.max(map.getZoom(),16));else{startWatch();toast('Finding your location…')}};
+$('recenter').onclick=()=>{follow=true;$('recenter').classList.add('on');if(me)followTo(GPS.shown||me,Math.max(map.getZoom(),16));else{startWatch();toast('Finding your location…')}};
 map.on('dragstart',()=>{follow=false;$('recenter').classList.remove('on')});
 $('zoomIn').onclick=()=>map.zoomIn();$('zoomOut').onclick=()=>map.zoomOut();
 
@@ -102,7 +132,7 @@ async function plan(opts={}){if(!to)return;const a=opts.from||(from?[from.lat,fr
  $('statusChip').textContent=opts.reroute?'Re-routing…':'Finding route…';
  try{const url=`https://routing.openstreetmap.de/routed-${profile}/route/v1/driving/${a[1]},${a[0]};${to.lng},${to.lat}?overview=full&geometries=geojson&steps=true&alternatives=false`;
   const j=await (await fetch(url)).json();if(j.code!=='Ok'||!j.routes||!j.routes.length)throw new Error(j.message||'No route');
-  build(j.routes[0]);draw(!opts.reroute);weather();elevation();window.SAFE&&SAFE.onRoute();rerouting=false;offCount=0;
+  build(j.routes[0]);route.start=a;draw(!opts.reroute);weather();elevation();window.SAFE&&SAFE.onRoute();rerouting=false;offCount=0;
   $('statusChip').textContent=riding?'Navigating':'Route ready';$('destTitle').textContent=to.name;$('demoBtn').hidden=riding;
   if(opts.reroute)say('Route recalculated')}
  catch(e){rerouting=false;$('statusChip').textContent='No route';toast('Could not find a route. Check your connection or try another place.')}}
@@ -111,17 +141,23 @@ function build(r){const co=r.geometry.coordinates.map(([x,y])=>[y,x]),cum=[0];fo
   return {ll:loc,cum:cum[bi],text:instr(s),type:s.maneuver.type,mod:s.maneuver.modifier||'straight',dist:s.distance,said:{}}});
  route={co,cum,dist:r.distance,dur:r.duration,steps,idx:0}}
 function draw(fit){rl.clearLayers();doneLine=null;const co=route.co;
- L.polyline(co,{color:'#0b120c',weight:12,opacity:.55,interactive:false}).addTo(rl);
- L.polyline(co,{color:'#d6f53f',weight:20,opacity:.22,interactive:false,className:'glow'}).addTo(rl);
- L.polyline(co,{color:'#d6f53f',weight:9,opacity:.28,interactive:false}).addTo(rl);
- L.polyline(co,{color:'#d6f53f',weight:6,opacity:1,interactive:false,dashArray:'0 12',lineCap:'round'}).addTo(rl);
- doneLine=L.polyline([],{color:'#7d8a78',weight:6,opacity:.95,interactive:false}).addTo(rl);
+ L.polyline(co,{color:'#d6f53f',weight:22,opacity:.18,interactive:false}).addTo(rl);
+ L.polyline(co,{color:'#0b120c',weight:11,opacity:.85,interactive:false,lineJoin:'round',lineCap:'round'}).addTo(rl);
+ L.polyline(co,{color:'#d6f53f',weight:7,opacity:1,interactive:false,lineJoin:'round',lineCap:'round'}).addTo(rl);
+ doneLine=L.polyline([],{color:'#8a968a',weight:7,opacity:1,interactive:false,lineJoin:'round',lineCap:'round'}).addTo(rl);
+ // direction chevrons along the route
+ const gap=Math.max(120,route.dist/40);for(let dd=gap/2;dd<route.dist;dd+=gap){const i=route.cum.findIndex(c=>c>=dd);if(i<1)continue;const k=Math.min(co.length-1,i+1),b2=bearing(co[i-1],co[k]);
+  L.marker(co[i],{icon:L.divIcon({className:'',html:`<div class="chev" style="transform:rotate(${b2}deg)">${S('<path d="m6 15 6-6 6 6"/>')}</div>`,iconSize:[16,16],iconAnchor:[8,8]}),interactive:false}).addTo(rl)}
  const turns=route.steps.filter(s=>s.type!=='depart'&&s.type!=='arrive'),every=Math.max(1,Math.ceil(turns.length/18));
  turns.forEach((s,i)=>{L.marker(s.ll,{icon:L.divIcon({className:'',html:'<div class="tdot"></div>',iconSize:[12,12],iconAnchor:[6,6]}),interactive:false}).addTo(rl);
   if(i%every===0)L.marker(s.ll,{icon:L.divIcon({className:'',html:`<span class="rlabel turn">${turnIcon(s.type,s.mod)}${fmtD(s.cum)}</span>`,iconSize:[0,0],iconAnchor:[0,26]}),interactive:false}).addTo(rl)});
  const mid=route.co[Math.floor(co.length/2)];L.marker(mid,{icon:L.divIcon({className:'',html:`<span class="rlabel">${fmtD(route.dist)} · ${fmtT(route.dur)}</span>`,iconSize:[0,0]}),interactive:false}).addTo(rl);
- L.marker(co[0],{icon:L.divIcon({className:'',html:`<div class="pin start">${S('<circle cx="12" cy="12" r="4"/>')}</div>`,iconSize:[38,38],iconAnchor:[19,19]})}).addTo(rl);
- L.marker(co[co.length-1],{icon:L.divIcon({className:'',html:`<div class="pin">${S('<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>')}</div>`,iconSize:[38,38],iconAnchor:[19,19]})}).addTo(rl);
+ // pins at the real start and the real destination; dashed walk-in line when the road ends away from the place
+ const st=route.start||co[0],en=[to.lat,to.lng];
+ if(hav(st,co[0])>20)L.polyline([st,co[0]],{color:'#ffffff',weight:3,opacity:.9,dashArray:'2 8',lineCap:'round',interactive:false}).addTo(rl);
+ if(hav(en,co[co.length-1])>20)L.polyline([co[co.length-1],en],{color:'#ffffff',weight:3,opacity:.9,dashArray:'2 8',lineCap:'round',interactive:false}).addTo(rl);
+ L.marker(st,{icon:L.divIcon({className:'',html:`<div class="pin start">${S('<circle cx="12" cy="12" r="4"/>')}</div>`,iconSize:[30,30],iconAnchor:[15,15]}),interactive:false}).addTo(rl);
+ L.marker(en,{icon:L.divIcon({className:'',html:`<div class="dpin"><div class="dhead">${S('<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>')}</div><div class="dtail"></div><span class="dlabel">${esc2(to.name)}</span></div>`,iconSize:[44,56],iconAnchor:[22,54]}),zIndexOffset:500}).addTo(rl);
  if(fit){const ph=isPhone();map.fitBounds(L.latLngBounds(co),{paddingTopLeft:ph?[30,170]:[350,160],paddingBottomRight:ph?[30,150]:[360,140],maxZoom:17})}
  $('turnList').innerHTML=route.steps.map((s,i)=>`<li data-i="${i}"><span class="ti">${turnIcon(s.type,s.mod)}</span><span>${s.text}</span><small>${fmtD(s.cum)}</small></li>`).join('');
  $('rDist').textContent=fmtD(route.dist);$('rTime').textContent=fmtT(route.dur);$('routeChip').textContent=`${route.steps.length-2} turns · ${profile==='car'?'Motorbike':'Cycle'}`;
@@ -131,6 +167,7 @@ $('turnList').onclick=e=>{const li=e.target.closest('li[data-i]');if(!li||!route
 $('nextStep').onclick=()=>stepNav(1);$('prevStep').onclick=()=>stepNav(-1);
 function stepNav(d){if(!route)return;const base=stepView??route.idx;const i=Math.max(0,Math.min(route.steps.length-1,base+d));stepView=i;follow=false;$('recenter').classList.remove('on');map.flyTo(route.steps[i].ll,17,{duration:.5});showNext(i)}
 
+const esc2=s=>String(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 // ---------- navigation progress ----------
 function project(ll){const co=route.co,lat0=rad(ll[0]),kx=Math.cos(lat0)*R*Math.PI/180,ky=R*Math.PI/180;let best={d:1e12,along:0,i:0};
  const from=Math.max(0,(route.pi||0)-30),toI=Math.min(co.length-1,(route.pi||0)+400),scan=(a,b)=>{for(let i=a;i<b;i++){const A=co[i],B=co[i+1],ax=(A[1]-ll[1])*kx,ay=(A[0]-ll[0])*ky,bx=(B[1]-ll[1])*kx,by=(B[0]-ll[0])*ky,dx=bx-ax,dy=by-ay,L2=dx*dx+dy*dy;
@@ -156,12 +193,12 @@ function arrive(){say('You have arrived at your destination');toast('🏁 You ha
 
 // ---------- ride start / stop ----------
 $('goBtn').onclick=()=>riding?stopRide():startRide();
-async function startRide(){startWatch();riding=true;follow=true;stepView=null;$('recenter').classList.add('on');Object.assign(stats,{t0:Date.now(),dist:0,moving:0,max:0,hist:[]});
+async function startRide(){startWatch();riding=true;document.body.classList.add('riding');follow=true;stepView=null;$('recenter').classList.add('on');Object.assign(stats,{t0:Date.now(),dist:0,moving:0,max:0,hist:[]});
  $('goBtn').classList.add('stop');$('goTxt').textContent='STOP';$('goSub').textContent=route?'navigating':'free ride';$('liveChip').hidden=false;$('statusChip').textContent=route?'Navigating':'Free ride';$('demoBtn').hidden=true;
- window.SAFE&&SAFE.onStart();if(route){route.steps.forEach(s=>s.said={});say('Ride started. Wear your helmet. '+route.steps[0].text);if(me)progress()}if(me)map.setView(me,17);
+ window.SAFE&&SAFE.onStart();if(route){route.steps.forEach(s=>s.said={});say('Ride started. Wear your helmet. '+route.steps[0].text);if(me)progress()}if(me)setTimeout(()=>followTo(GPS.shown||me,17),350);
  clearInterval(stats.tick);stats.tick=setInterval(()=>{const sp=stats.speed*3.6;stats.hist.push(sp);if(stats.hist.length>36)stats.hist.shift();renderStats()},2000);
- try{wake=await navigator.wakeLock.request('screen')}catch(_){};if(isPhone())openSheet('ride')}
-function stopRide(arrived){if(riding&&window.FEAT)FEAT.onStop(arrived);riding=false;clearInterval(stats.tick);if(demo){clearInterval(demo);demo=null}
+ try{wake=await navigator.wakeLock.request('screen')}catch(_){};if(isPhone()){openSheet('ride');minSheet(true)}}
+function stopRide(arrived){if(riding&&window.FEAT)FEAT.onStop(arrived);riding=false;document.body.classList.remove('riding');clearInterval(stats.tick);if(demo){clearInterval(demo);demo=null}
  $('goBtn').classList.remove('stop');$('goTxt').textContent='START';$('goSub').textContent='ride';$('liveChip').hidden=true;if(!arrived)$('statusChip').textContent=route?'Route ready':'Plan a ride';$('demoBtn').hidden=!route;
  try{wake&&wake.release()}catch(_){}wake=null;renderStats()}
 document.addEventListener('visibilitychange',async()=>{if(riding&&document.visibilityState==='visible'&&!wake){try{wake=await navigator.wakeLock.request('screen')}catch(_){}}});

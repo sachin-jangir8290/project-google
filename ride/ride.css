@@ -343,3 +343,21 @@ body.placeon .bnav,body.placeon #sheet{display:none!important}
 @media (min-width:861px){.bubbles{left:calc(340px + var(--sl))}}
 @media (max-width:860px){.bubbles{top:calc(150px + var(--st));bottom:auto;left:calc(12px + var(--sl))}body.sheet:not(.sheetmin) .bubbles{display:none}
  .bnav button{padding:0 12px}}
+
+/* ===================== location accuracy, pins & route direction ===================== */
+.gps{position:fixed;z-index:9;left:calc(18px + var(--sl));top:calc(66px + var(--st));padding:5px 10px 5px 22px;border-radius:999px;font-size:12px;font-weight:700;background:rgba(12,18,13,.8);border:1px solid var(--bd);backdrop-filter:blur(10px)}
+.gps::before{content:"";position:absolute;left:9px;top:50%;width:7px;height:7px;margin-top:-3.5px;border-radius:50%;background:currentColor}
+.gps.good{color:#6ee7b7}.gps.ok{color:#fbbf24}.gps.bad{color:#ff8a8a}.gps.wait{color:var(--mu)}.gps.wait::before{animation:pulse 1.2s infinite}
+@media (min-width:861px){.gps{top:auto;bottom:calc(100px + var(--sb));left:calc(340px + var(--sl))}}
+@media (max-width:860px){.gps{top:calc(62px + var(--st))}body.riding .gps,body:has(.next:not([hidden])) .gps{top:auto;bottom:calc(84px + var(--sb) + 8px);display:none}}
+.rider{position:relative}
+.rider .cone{position:absolute;left:50%;top:50%;width:0;height:0;transition:transform .4s}
+.rider .cone::before{content:"";position:absolute;left:-26px;top:-62px;width:52px;height:62px;background:radial-gradient(ellipse at 50% 100%,rgba(214,245,63,.55),rgba(214,245,63,0) 70%);clip-path:polygon(50% 100%,0 0,100% 0)}
+.leaflet-pane .chev{width:16px;height:16px;display:grid;place-items:center;color:#0b120c}
+.leaflet-pane .chev svg{width:14px;height:14px;fill:none;stroke:#0b120c;stroke-width:3.4}
+.dpin{position:relative;width:44px;height:56px;display:flex;flex-direction:column;align-items:center}
+.dhead{width:40px;height:40px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--lime);border:3px solid #0b120c;display:grid;place-items:center;box-shadow:0 6px 16px rgba(0,0,0,.5)}
+.leaflet-pane .dhead svg{transform:rotate(45deg);width:18px;height:18px;fill:none;stroke:#0b120c;stroke-width:2.4}
+.dtail{width:10px;height:5px;border-radius:50%;background:rgba(0,0,0,.45);margin-top:9px}
+.dlabel{position:absolute;bottom:62px;left:50%;transform:translateX(-50%);white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis;background:#fff;color:#0b120c;font:700 12px var(--f);padding:4px 10px;border-radius:999px;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.pin{width:30px;height:30px}.pin.start{background:#fff;border-width:3px}
