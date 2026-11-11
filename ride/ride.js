@@ -249,7 +249,10 @@ function renderStats(){const el=riding?(Date.now()-stats.t0)/1000:0;$('sSpeed').
 renderStats();
 
 // ---------- voice ----------
-function say(t){if(!voice||!('speechSynthesis' in window))return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='en-IN';u.rate=1;speechSynthesis.speak(u)}catch(_){}}
+// speak: Android app uses the phone's own text-to-speech (WebView has none); browsers use speechSynthesis
+function say(t,lang,force){if((!voice&&!force)||!t)return;lang=lang||(/[\u0900-\u097F]/.test(t)?'hi-IN':'en-IN');
+ try{if(window.NovaNative&&NovaNative.speak){NovaNative.speak(String(t),lang);return}}catch(_){}
+ if(!('speechSynthesis' in window))return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang=lang;u.rate=1;const v=speechSynthesis.getVoices().find(v=>v.lang&&v.lang.replace('_','-').startsWith(lang.slice(0,2)));if(v)u.voice=v;speechSynthesis.speak(u)}catch(_){}}
 function syncVoice(){$('voiceBtn').setAttribute('aria-pressed',voice)}syncVoice();
 $('voiceBtn').onclick=()=>{voice=!voice;store.set('voice',voice);syncVoice();toast(voice?'Voice guidance on':'Voice guidance off');if(voice)say('Voice guidance on')};
 

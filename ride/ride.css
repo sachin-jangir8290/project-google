@@ -379,3 +379,39 @@ body[data-map="voyager"] .shade,body[data-map="street"] .shade{background:linear
 .ltog input{position:absolute;opacity:0;pointer-events:none}.ltog i{flex:none;width:44px;height:26px;border-radius:99px;background:rgba(255,255,255,.18);position:relative}
 .ltog i::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s}
 .ltog input:checked+i{background:var(--lime)}.ltog input:checked+i::after{left:21px;background:var(--ink)}.ltog input:disabled+i{opacity:.4}
+
+/* ===================== Nova assistant ===================== */
+.novaorb{position:fixed;z-index:13;right:calc(18px + var(--sr));bottom:calc(110px + var(--sb));display:flex;align-items:center;gap:8px;padding:6px 16px 6px 6px;border:1px solid rgba(214,245,63,.35);border-radius:999px;background:rgba(12,18,13,.85);color:var(--tx);backdrop-filter:blur(14px);box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.novaorb b{font-weight:800;letter-spacing:.04em}
+.novaorb .core{position:relative;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#f4ff9e,var(--lime) 45%,#7fa317);color:var(--ink);z-index:1}
+.novaorb .core svg{width:19px;height:19px;stroke-width:2.4}
+.novaorb .ring{position:absolute;left:6px;top:6px;width:40px;height:40px;border-radius:50%;box-shadow:0 0 0 0 rgba(214,245,63,.6);animation:novaPulse 2.4s infinite}
+@keyframes novaPulse{70%{box-shadow:0 0 0 14px rgba(214,245,63,0)}100%{box-shadow:0 0 0 0 rgba(214,245,63,0)}}
+body.novalisten .novaorb .ring{animation-duration:.8s}
+.nova{position:fixed;z-index:35;right:calc(18px + var(--sr));bottom:calc(18px + var(--sb));width:400px;max-height:min(640px,calc(100vh - 100px));display:flex;flex-direction:column;border-radius:26px;background:#0f130f;border:1px solid rgba(214,245,63,.18);box-shadow:0 30px 80px rgba(0,0,0,.6);overflow:hidden}
+.nhead{display:flex;align-items:center;gap:10px;padding:14px 14px 10px}
+.nhead>div:not(.nlang){flex:1;min-width:0;display:flex;flex-direction:column}.nhead b{font-size:18px}.nhead small{color:var(--mu);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nlogo{position:relative;width:38px;height:38px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#f4ff9e,var(--lime) 45%,#5d7a0f);flex:none;box-shadow:0 0 22px rgba(214,245,63,.45)}
+.nlogo i{position:absolute;inset:9px;border-radius:50%;border:2px solid rgba(11,18,12,.55);border-top-color:transparent;animation:spin 3s linear infinite}
+body.novathink .nlogo i{animation-duration:.7s}@keyframes spin{to{transform:rotate(360deg)}}
+.nlang{display:flex;padding:3px;border-radius:999px;background:rgba(255,255,255,.06)}.nlang button{border:0;background:none;color:var(--mu);font-size:12px;font-weight:700;padding:5px 8px;border-radius:999px}.nlang button.on{background:var(--lime);color:var(--ink)}
+.nx{display:grid;place-items:center;width:32px;height:32px;border:0;border-radius:50%;background:rgba(255,255,255,.06);color:var(--tx);font-size:20px;flex:none}.nx svg{width:16px;height:16px}
+.nset{padding:4px 16px 12px;border-bottom:1px solid var(--bd)}.nset p{margin:0 0 8px;font-size:14px}.nset small{color:var(--mu);font-size:12px}
+.nset input:not([type=checkbox]){width:100%;margin-bottom:8px;background:var(--glass2);border:1px solid var(--bd);border-radius:12px;color:var(--tx);font:inherit;font-size:13px;padding:10px 12px;outline:none}
+.nsrow{display:flex;gap:8px;margin-top:8px}.nsrow button{flex:1;border:0;border-radius:12px;padding:10px;font-weight:700;background:var(--lime);color:var(--ink)}.nsrow .ghost{background:none;border:1px solid var(--bd);color:var(--tx)}
+.nchat{flex:1;overflow-y:auto;padding:8px 14px;display:flex;flex-direction:column;gap:10px;min-height:120px}
+.nm{max-width:88%;padding:10px 13px;border-radius:18px;font-size:14px;line-height:1.45;white-space:pre-line}
+.nm.me{align-self:flex-end;background:var(--lime);color:var(--ink);border-bottom-right-radius:6px;font-weight:600}
+.nm.ai{align-self:flex-start;background:rgba(255,255,255,.07);border-bottom-left-radius:6px}.nm.ai small{display:block;margin-top:6px;color:var(--mu);font-size:11px}
+.nm.ai.typing{color:var(--mu)}.nm.ai.typing::after{content:"…";animation:blink .6s infinite alternate}
+.nchips{display:flex;gap:6px;overflow-x:auto;padding:4px 14px 8px;scrollbar-width:none}.nchips::-webkit-scrollbar{display:none}
+.nchips button{flex:none;border:1px solid var(--bd);background:rgba(255,255,255,.04);color:var(--tx);border-radius:999px;padding:7px 12px;font-size:13px;font-weight:600;white-space:nowrap}
+.ninput{display:flex;gap:8px;padding:8px 12px calc(12px + var(--sb));border-top:1px solid var(--bd)}
+.ninput input{flex:1;min-width:0;background:var(--glass2);border:1px solid var(--bd);border-radius:999px;color:var(--tx);font:inherit;padding:11px 16px;outline:none}.ninput input:focus{border-color:var(--lime)}
+.nmic,.nsend{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;border:0;flex:none}.nmic{background:rgba(255,255,255,.08);color:var(--lime)}.nsend{background:var(--lime);color:var(--ink)}
+body.novalisten .nmic{background:var(--red);color:#fff;animation:blink .6s infinite alternate}
+body.novaon .novaorb{display:none}
+@media (max-width:860px){.novaorb{bottom:calc(88px + var(--sb));right:calc(12px + var(--sr));padding:4px}.novaorb b{display:none}.novaorb .ring{left:4px;top:4px}
+ body.sheet:not(.sheetmin) .novaorb{bottom:auto;top:calc(64px + var(--st))}body.riding .novaorb,body:has(.next:not([hidden])) .novaorb{top:auto;bottom:calc(150px + var(--sb))}
+ .nova{left:8px;right:8px;width:auto;bottom:8px;max-height:calc(100vh - 80px)}}
+body.eyeon .novaorb,body.placeon .novaorb{display:none}

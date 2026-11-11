@@ -7,6 +7,11 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.speech.RecognitionListener;
+import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
+import android.speech.tts.TextToSpeech;
+import android.webkit.JavascriptInterface;
 import android.view.WindowManager;
 import android.webkit.GeolocationPermissions;
 import android.webkit.PermissionRequest;
@@ -19,7 +24,11 @@ import android.webkit.WebViewClient;
 
 import androidx.webkit.WebViewAssetLoader;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Locale;
+
+import org.json.JSONObject;
 
 /** RideLine: hosts the web app from the APK's assets in a secure WebView with GPS and camera access. */
 public class MainActivity extends Activity {
@@ -27,11 +36,16 @@ public class MainActivity extends Activity {
     private static final String START_URL = "https://" + HOST + "/assets/ride/index.html";
     private static final int REQ_LOCATION = 1;
     private static final int REQ_CAMERA = 2;
+    private static final int REQ_MIC = 3;
 
     private WebView web;
     private GeolocationPermissions.Callback geoCallback;
     private String geoOrigin;
     private PermissionRequest pendingCamera;
+    private TextToSpeech tts;
+    private boolean ttsReady = false;
+    private SpeechRecognizer recognizer;
+    private String pendingListenLang;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,8 +113,76 @@ public class MainActivity extends Activity {
             }
         });
 
+        tts = new TextToSpeech(this, status -> ttsReady = status == TextToSpeech.SUCCESS);
+        web.addJavascriptInterface(new NovaBridge(), "NovaNative");
+
         if (savedInstanceState != null) web.restoreState(savedInstanceState);
         else web.loadUrl(START_URL);
+    }
+
+    /** Voice for navigation and Nova: Android text-to-speech and speech recognition, called from JavaScript. */
+    private class NovaBridge {
+        @JavascriptInterface
+        public void speak(String text, String lang) {
+            if (tts == null || !ttsReady || text == null) return;
+            Locale locale = (lang != null && lang.startsWith("hi")) ? new Locale("hi", "IN") : new Locale("en", "IN");
+            int ok = tts.setLanguage(locale);
+            if (ok == TextToSpeech.LANG_MISSING_DATA || ok == TextToSpeech.LANG_NOT_SUPPORTED) tts.setLanguage(Locale.ENGLISH);
+            tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "rideline");
+        }
+
+        @JavascriptInterface
+        public void stop() {
+            if (tts != null) tts.stop();
+        }
+
+        @JavascriptInterface
+        public void listen(String lang) {
+            runOnUiThread(() -> {
+                if (has(Manifest.permission.RECORD_AUDIO)) startListening(lang);
+                else {
+                    pendingListenLang = lang;
+                    requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, REQ_MIC);
+                }
+            });
+        }
+    }
+
+    private void js(String fn, String arg) {
+        String a = arg == null ? "null" : JSONObject.quote(arg);
+        runOnUiThread(() -> web.evaluateJavascript("window.__novaNative&&window.__novaNative." + fn + "(" + a + ")", null));
+    }
+
+    private void startListening(String lang) {
+        if (!SpeechRecognizer.isRecognitionAvailable(this)) {
+            js("onError", "Speech recognition is not available on this phone");
+            return;
+        }
+        if (recognizer == null) {
+            recognizer = SpeechRecognizer.createSpeechRecognizer(this);
+            recognizer.setRecognitionListener(new RecognitionListener() {
+                @Override public void onReadyForSpeech(Bundle params) { js("onListening", null); }
+                @Override public void onBeginningOfSpeech() { }
+                @Override public void onRmsChanged(float rmsdB) { }
+                @Override public void onBufferReceived(byte[] buffer) { }
+                @Override public void onEndOfSpeech() { }
+                @Override public void onError(int error) {
+                    js("onError", error == SpeechRecognizer.ERROR_NO_MATCH || error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT ? "Didn't hear anything, try again" : "Voice input error " + error);
+                }
+                @Override public void onResults(Bundle results) {
+                    ArrayList<String> list = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                    js("onResult", list != null && !list.isEmpty() ? list.get(0) : "");
+                }
+                @Override public void onPartialResults(Bundle partialResults) { }
+                @Override public void onEvent(int eventType, Bundle params) { }
+            });
+        }
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, lang == null ? "hi-IN" : lang);
+        intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1);
+        if (tts != null) tts.stop();
+        recognizer.startListening(intent);
     }
 
     private boolean has(String permission) {
@@ -117,6 +199,10 @@ public class MainActivity extends Activity {
             if (granted) pendingCamera.grant(new String[]{PermissionRequest.RESOURCE_VIDEO_CAPTURE});
             else pendingCamera.deny();
             pendingCamera = null;
+        } else if (requestCode == REQ_MIC) {
+            if (granted && pendingListenLang != null) startListening(pendingListenLang);
+            else js("onError", "Microphone permission is needed to talk to Nova");
+            pendingListenLang = null;
         }
     }
 
@@ -134,6 +220,8 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        if (recognizer != null) recognizer.destroy();
+        if (tts != null) tts.shutdown();
         if (web != null) web.destroy();
         super.onDestroy();
     }
