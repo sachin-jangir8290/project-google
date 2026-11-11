@@ -26,3 +26,6 @@ Libraries (pdf-lib, pdf.js, JSZip, SheetJS, PptxGenJS, mammoth, html2pdf, jsPDF,
 
 ### RideLine Android app
 `android/` wraps `ride/` in a WebView app (GPS + camera permissions). The GitHub Actions workflow `.github/workflows/android.yml` builds `RideLine.apk` on every push that touches `ride/` or `android/` and attaches it to a GitHub Release — download it from the repository's **Releases** page.
+
+### RideLine group rides
+`ride-server/` is a small WebSocket relay (Node.js + `ws`) for group rides: live positions, chat and SOS, kept in memory only. `deploy/install.sh` installs it as the `rideline-server` systemd service and proxies `wss://<domain>/ride-ws` to it.

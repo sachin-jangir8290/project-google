@@ -38,7 +38,29 @@ echo "▶ 4/6 Copying files to $WEBROOT ..."
 mkdir -p "$WEBROOT"
 cp -r "$SRC"/ride "$SRC"/index.html "$SRC"/images.html "$SRC"/editor.html "$SRC"/about.html "$SRC"/privacy.html "$SRC"/terms.html "$SRC"/contact.html "$SRC"/ads.txt "$SRC"/assets "$WEBROOT"/
 chown -R www-data:www-data "$WEBROOT"
-rm -rf "$TMP"
+
+echo "▶ 4b/6 Group ride server (Node.js)..."
+if [ -d "$SRC/ride-server" ]; then
+  command -v node >/dev/null 2>&1 || DEBIAN_FRONTEND=noninteractive apt-get install -y -qq nodejs npm >/dev/null
+  mkdir -p /opt/rideline-server && cp "$SRC"/ride-server/server.js "$SRC"/ride-server/package.json /opt/rideline-server/
+  (cd /opt/rideline-server && npm install --omit=dev --no-audit --no-fund >/dev/null 2>&1)
+  cat > /etc/systemd/system/rideline-server.service <<UNIT
+[Unit]
+Description=RideLine group ride server
+After=network.target
+
+[Service]
+ExecStart=$(command -v node) /opt/rideline-server/server.js
+Environment=PORT=8787 HOST=127.0.0.1
+Restart=always
+User=www-data
+WorkingDirectory=/opt/rideline-server
+
+[Install]
+WantedBy=multi-user.target
+UNIT
+  systemctl daemon-reload && systemctl enable --now rideline-server >/dev/null 2>&1 && systemctl restart rideline-server
+fi
 
 echo "▶ 5/6 Configuring nginx for $DOMAIN ..."
 cat > /etc/nginx/sites-available/pdfpup <<NGINX
@@ -48,6 +70,14 @@ server {
     root $WEBROOT;
     index index.html;
     location / { try_files \$uri \$uri/ =404; }
+    location /ride-ws {
+        proxy_pass http://127.0.0.1:8787;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host \$host;
+        proxy_read_timeout 3600s;
+    }
     location ~* \.(css|js|svg|png|jpg|webp|ico)\$ { expires 7d; add_header Cache-Control "public"; }
     gzip on;
     gzip_types text/css application/javascript image/svg+xml text/plain;
@@ -57,6 +87,8 @@ ln -sf /etc/nginx/sites-available/pdfpup /etc/nginx/sites-enabled/pdfpup
 nginx -t
 systemctl enable --now nginx >/dev/null 2>&1 || true
 systemctl reload nginx
+
+rm -rf "$TMP"
 
 echo "▶ 6/6 Free SSL (https)..."
 DEBIAN_FRONTEND=noninteractive apt-get install -y -qq certbot python3-certbot-nginx >/dev/null

@@ -27,6 +27,7 @@
   <button data-tab="route" hidden><svg viewBox="0 0 24 24"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h7"/></svg>Route</button>
   <button data-tab="stats"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Stats</button>
   <button data-tab="safety"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>Safety</button>
+  <button data-tab="group"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2 21a7 7 0 0 1 14 0M16 4.5a3.5 3.5 0 0 1 0 7M22 21a7 7 0 0 0-4-6.3"/></svg>Group</button>
  </nav>
  <div class="tright">
   <button class="round" id="voiceBtn" title="Voice guidance" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4zM15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></button>
@@ -60,6 +61,11 @@
   <div class="qchips" id="qchips"><button data-q="fuel">⛽ Fuel</button><button data-q="hospital">🏥 Hospital</button><button data-q="police">👮 Police</button><button data-q="last" id="qLast" hidden>↺ Last trip</button></div>
   <div class="seg" id="profile"><button data-p="car" class="on">Motorbike</button><button data-p="bike">Cycle</button></div>
   <p class="hint">Tip: long-press / right-click the map to set a destination.</p>
+ </section>
+
+ <section class="card explore" data-sheet="home">
+  <div class="exhead"><h2><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16 8-2 6-6 2 2-6z"/></svg>Explore nearby</h2><div class="seg mini2" id="exTabs"><button data-x="near" class="on">Nearby</button><button data-x="saved">Saved</button></div></div>
+  <div class="places" id="places"><div class="pempty">Finding places to ride to…</div></div>
  </section>
 
  <section class="card summary" data-sheet="home" id="summary" hidden>
@@ -151,9 +157,32 @@
   <div class="trio"><div><small>Distance</small><b id="rDist">—</b></div><div><small>Ride time</small><b id="rTime">—</b></div><div><small>Climb</small><b id="rClimb">—</b></div></div>
  </section>
 
+ <section class="card hist" data-sheet="stats">
+  <h2><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>Ride history</h2>
+  <div class="htot" id="histTot"></div>
+  <ul class="hlist" id="histList"><li class="empty">Your finished rides will appear here.</li></ul>
+ </section>
+
  <section class="card turns" data-sheet="stats">
   <h2><svg viewBox="0 0 24 24"><path d="M9 18 15 12 9 6"/></svg>Turn by turn</h2>
   <ol id="turnList"><li class="empty">Turns will appear here.</li></ol>
+ </section>
+
+ <section class="card group" data-sheet="group">
+  <h2><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2 21a7 7 0 0 1 14 0M16 4.5a3.5 3.5 0 0 1 0 7M22 21a7 7 0 0 0-4-6.3"/></svg>Group ride <span class="chip live sm2" id="grpLive" hidden>● LIVE</span></h2>
+  <div id="grpOut">
+   <p class="gintro">Ride together: see friends on the map, who is ahead, send messages, and alert everyone with SOS.</p>
+   <button class="startpill" id="grpCreate">Create a group</button>
+   <div class="gjoin"><input id="grpCode" placeholder="Enter code" maxlength="8" autocomplete="off" autocapitalize="characters"><button id="grpJoin">Join</button></div>
+   <details class="gadv"><summary>Server</summary><input id="grpServer" autocomplete="off"><small>Use your own server address (wss://…/ride-ws).</small></details>
+  </div>
+  <div id="grpIn" hidden>
+   <div class="gcode"><div><small>Group code</small><b id="grpCodeV">—</b></div><button id="grpShare">Share</button><button id="grpLeave" class="lv">Leave</button></div>
+   <div class="grank" id="grpRank"></div>
+   <ol class="gmem" id="grpMembers"></ol>
+   <div class="gchat" id="grpChat"></div>
+   <form class="gsend" id="grpForm"><input id="grpMsg" placeholder="Message the group" maxlength="200" autocomplete="off"><button aria-label="Send"><svg viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></svg></button></form>
+  </div>
  </section>
 </aside>
 
@@ -176,6 +205,7 @@
  <button data-tab="home" class="on"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg><span>Home</span></button>
  <button data-tab="ride"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m16 8-2 6-6 2 2-6z"/></svg><span>Ride</span></button>
  <button data-tab="safety"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg><span>Safety</span></button>
+ <button data-tab="group"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2 21a7 7 0 0 1 14 0M16 4.5a3.5 3.5 0 0 1 0 7M22 21a7 7 0 0 0-4-6.3"/></svg><span>Group</span></button>
  <button data-tab="stats"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Stats</span></button>
 </nav>
 <button class="sheetbtn" id="sheetBtn"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>Details</span></button>
@@ -216,8 +246,21 @@
   <p class="loc" id="sosLoc">Location: finding…</p>
  </div>
 </div>
+<div class="place" id="place" hidden>
+ <div class="phero" id="phero"><button class="pbtn" id="pBack" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M15 18 9 12l6-6"/></svg></button><button class="pbtn" id="pSave" aria-label="Save place"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></button><small class="pcredit" id="pCredit"></small></div>
+ <div class="psheet">
+  <div class="pgrab"></div>
+  <h2 id="pTitle">—</h2><p class="psub" id="pSub">—</p>
+  <div class="pstats"><div><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span><b id="pTime">—</b><small>Duration</small></span></div><div><svg viewBox="0 0 24 24"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h7"/></svg><span><b id="pDist">—</b><small>Distance</small></span></div><div><svg viewBox="0 0 24 24"><path d="m12 3 1.9 5.8H20l-5 3.6 1.9 5.8L12 14.6l-5 3.6L9 12.4 4 8.8h6.1z"/></svg><span><b id="pLevel">—</b><small>Level</small></span></div></div>
+  <div class="ptabs" id="pTabs"><button data-p="details" class="on">Details</button><button data-p="route">Route list</button><button data-p="notes">Notes</button></div>
+  <div class="pbody" id="pBody"></div>
+  <button class="startpill pgo" id="pGo">Start your trip <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+ </div>
+</div>
+<div class="bubbles" id="bubbles" hidden></div>
 <div id="toast"></div>
 <script src="ride.js"></script>
 <script src="safety.js"></script>
+<script src="features.js"></script>
 </body>
 </html>

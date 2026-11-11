@@ -72,7 +72,7 @@ function onPos(p){const c=p.coords,ll=[c.latitude,c.longitude],now=p.timestamp||
  const first=!me;me=ll;drawMe();
  if(follow&&(riding||first))map.setView(ll,riding?Math.max(map.getZoom(),16):Math.max(map.getZoom(),15),{animate:!first});
  if(first&&to&&!route)plan();
- if(riding)progress();renderStats();window.SAFE&&SAFE.onPos()}
+ if(riding)progress();renderStats();window.SAFE&&SAFE.onPos();window.FEAT&&FEAT.onPos()}
 function drawMe(){const html=`<div class="rider"><span class="pulse"></span><span class="core" style="transform:rotate(${heading}deg)">${S('<path d="M12 3 6 20l6-4 6 4z"/>')}</span></div>`;
  if(!riderMk){riderMk=L.marker(me,{icon:L.divIcon({className:'',html,iconSize:[46,46],iconAnchor:[23,23]}),zIndexOffset:1000,interactive:false}).addTo(map);accCircle=L.circle(me,{radius:myAcc,color:'#d6f53f',weight:1,opacity:.4,fillOpacity:.06,interactive:false}).addTo(map)}
  else{riderMk.setLatLng(me);const core=riderMk.getElement()&&riderMk.getElement().querySelector('.core');if(core)core.style.transform=`rotate(${heading}deg)`;accCircle.setLatLng(me).setRadius(Math.min(myAcc,200))}}
@@ -161,7 +161,7 @@ async function startRide(){startWatch();riding=true;follow=true;stepView=null;$(
  window.SAFE&&SAFE.onStart();if(route){route.steps.forEach(s=>s.said={});say('Ride started. Wear your helmet. '+route.steps[0].text);if(me)progress()}if(me)map.setView(me,17);
  clearInterval(stats.tick);stats.tick=setInterval(()=>{const sp=stats.speed*3.6;stats.hist.push(sp);if(stats.hist.length>36)stats.hist.shift();renderStats()},2000);
  try{wake=await navigator.wakeLock.request('screen')}catch(_){};if(isPhone())openSheet('ride')}
-function stopRide(arrived){riding=false;clearInterval(stats.tick);if(demo){clearInterval(demo);demo=null}
+function stopRide(arrived){if(riding&&window.FEAT)FEAT.onStop(arrived);riding=false;clearInterval(stats.tick);if(demo){clearInterval(demo);demo=null}
  $('goBtn').classList.remove('stop');$('goTxt').textContent='START';$('goSub').textContent='ride';$('liveChip').hidden=true;if(!arrived)$('statusChip').textContent=route?'Route ready':'Plan a ride';$('demoBtn').hidden=!route;
  try{wake&&wake.release()}catch(_){}wake=null;renderStats()}
 document.addEventListener('visibilitychange',async()=>{if(riding&&document.visibilityState==='visible'&&!wake){try{wake=await navigator.wakeLock.request('screen')}catch(_){}}});

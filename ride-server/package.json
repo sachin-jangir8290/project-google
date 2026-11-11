@@ -1,0 +1,9 @@
+{
+  "name": "rideline-group-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Relay for RideLine group rides: live positions, chat and SOS. Keeps nothing on disk.",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "dependencies": { "ws": "8.18.0" }
+}
