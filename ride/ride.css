@@ -143,3 +143,28 @@ svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-l
 .elab{display:flex;justify-content:space-between;font-size:12px;color:var(--mu);margin-top:10px}
 #elevSvg{margin-top:6px}
 @media (max-width:860px){.demo{top:auto;bottom:calc(112px + var(--sb));right:auto;left:calc(12px + var(--sl))}body.sheet .demo{display:none}body.sheet .sheetbtn{bottom:auto;top:calc(70px + var(--st))}}
+
+/* Traffic Eye */
+.eyeb{width:auto;border-radius:999px;padding:0 14px;display:flex;gap:8px;font-weight:600;font-size:14px}.eyeb.on{background:var(--lime);color:var(--ink)}
+@media (max-width:860px){.eyeb span{display:none}.eyeb{width:44px;padding:0;justify-content:center}}
+.eye{position:fixed;inset:0;z-index:6;background:#000}
+#cam,#boxes{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+body.eyeon .side,body.eyeon #sheetBtn,body.eyeon .demo,body.eyeon .shade{display:none!important}
+.eyehud{position:absolute;right:calc(18px + var(--sr));top:calc(78px + var(--st));width:300px;z-index:2}
+.around h2{justify-content:flex-start}.sm2{font-size:11px;padding:3px 8px;margin-left:auto}
+.vgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.vgrid div{background:var(--glass2);border-radius:14px;padding:10px 8px;text-align:center}.vgrid b{display:block;font-size:26px;font-weight:800;font-variant-numeric:tabular-nums}.vgrid small{color:var(--mu);font-size:12px}
+.vgrid div.has b{color:var(--lime)}
+.ahead{margin-top:10px;background:rgba(214,245,63,.12);border:1px solid rgba(214,245,63,.3);border-radius:14px;padding:10px 12px}.ahead small{display:block;color:var(--mu);font-size:12px}.ahead b{font-size:20px}
+.ahead.close{background:rgba(255,77,79,.18);border-color:var(--red)}.ahead.close b{color:#ffb3b3}
+.eyenote{color:var(--mu);font-size:12px;margin:10px 0 0}
+.warn{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);z-index:3;background:var(--red);color:#fff;font-weight:800;font-size:26px;padding:16px 26px;border-radius:20px;box-shadow:0 0 0 6px rgba(255,77,79,.35);animation:blink .6s infinite alternate}
+@keyframes blink{to{box-shadow:0 0 0 18px rgba(255,77,79,0)}}
+.eyeclose{position:absolute;z-index:3;left:calc(18px + var(--sl));top:calc(78px + var(--st));border:1px solid var(--bd);background:var(--glass);border-radius:999px;padding:10px 16px;font-weight:600;backdrop-filter:blur(14px)}
+@media (max-width:860px){.eyehud{left:calc(12px + var(--sl));right:calc(12px + var(--sr));width:auto;top:auto;bottom:calc(112px + var(--sb))}.eyehud .card{padding:12px}.vgrid b{font-size:22px}.eyeclose{top:auto;bottom:calc(330px + var(--sb));left:calc(12px + var(--sl))}body.eyeon .next{top:calc(70px + var(--st))}}
+@media (prefers-reduced-motion:reduce){.warn{animation:none}}
+@media (max-width:860px){
+ .eyeclose{top:calc(70px + var(--st));bottom:auto;padding:8px 14px;font-size:14px}
+ .vgrid{grid-template-columns:repeat(6,1fr);gap:4px}.vgrid div{padding:6px 2px;border-radius:10px}.vgrid b{font-size:18px}.vgrid small{font-size:10px}
+ .around h2{margin-bottom:8px;font-size:15px}.ahead{margin-top:8px;padding:8px 10px}.ahead b{font-size:17px}.eyenote{display:none}
+ .warn{font-size:20px;padding:12px 18px;white-space:nowrap;top:35%}}

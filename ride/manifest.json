@@ -1,1 +1,29 @@
-{"name":"RideLine – Bike Navigation","short_name":"RideLine","start_url":"./","display":"standalone","orientation":"portrait","background_color":"#0b120c","theme_color":"#0b120c","icons":[{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]}
+{
+ "name": "RideLine \u2013 Bike Navigation",
+ "short_name": "RideLine",
+ "start_url": "./",
+ "display": "standalone",
+ "orientation": "portrait",
+ "background_color": "#0b120c",
+ "theme_color": "#0b120c",
+ "icons": [
+  {
+   "src": "icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "any"
+  },
+  {
+   "src": "icon.svg",
+   "sizes": "any",
+   "type": "image/svg+xml",
+   "purpose": "any"
+  }
+ ]
+}

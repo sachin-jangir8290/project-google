@@ -23,3 +23,6 @@ Libraries (pdf-lib, pdf.js, JSZip, SheetJS, PptxGenJS, mammoth, html2pdf, jsPDF,
 
 ## RideLine (bike navigation)
 `ride/` — a phone-first bike navigation web app: glowing route on a satellite map, next-turn card, voice guidance, re-routing, ride stats, weather and elevation. Open `ride/index.html` (needs HTTPS for GPS). Uses Leaflet, Esri/CARTO/OSM tiles, OSRM (routing.openstreetmap.de), Nominatim and Open-Meteo.
+
+### RideLine Android app
+`android/` wraps `ride/` in a WebView app (GPS + camera permissions). The GitHub Actions workflow `.github/workflows/android.yml` builds `RideLine.apk` on every push that touches `ride/` or `android/` and attaches it to a GitHub Release — download it from the repository's **Releases** page.

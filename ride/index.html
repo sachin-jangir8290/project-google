@@ -9,6 +9,7 @@
 <meta name="description" content="Bike ride navigation with a clear, glowing route on a satellite map, next-turn guidance, voice prompts, speed and weather.">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link rel="stylesheet" href="ride.css">
@@ -27,6 +28,7 @@
  </nav>
  <div class="tright">
   <button class="round" id="voiceBtn" title="Voice guidance" aria-pressed="true"><svg viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4zM15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg></button>
+  <button class="round eyeb" id="eyeBtn" title="Traffic Eye: detect vehicles with the camera"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><span>Traffic Eye</span></button>
   <button class="round" id="layerBtn" title="Map style"><svg viewBox="0 0 24 24"><path d="m12 2 10 5-10 5L2 7z"/><path d="m2 12 10 5 10-5M2 17l10 5 10-5"/></svg></button>
  </div>
 </header>
@@ -114,6 +116,20 @@
 <div id="sheet"><div class="grab"></div><div class="stabs" id="stabs"><button data-tab="ride" class="on">Ride</button><button data-tab="route">Route</button><button data-tab="stats">Stats</button></div><div class="sbody" id="sbody"></div></div>
 <button class="sheetbtn" id="sheetBtn"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>Details</span></button>
 <button class="demo" id="demoBtn" hidden title="Simulate the ride">▶ Demo ride</button>
+<div class="eye" id="eye" hidden>
+ <video id="cam" playsinline muted autoplay></video>
+ <canvas id="boxes"></canvas>
+ <div class="eyehud">
+  <section class="card around">
+   <h2><svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>Around you <span class="chip live sm2" id="eyeLive">● LIVE</span></h2>
+   <div class="vgrid" id="vgrid"></div>
+   <div class="ahead" id="ahead"><small>Nearest ahead</small><b id="aheadTxt">Clear road</b></div>
+   <p class="eyenote" id="eyeNote">Loading vehicle detector…</p>
+  </section>
+ </div>
+ <div class="warn" id="warn" hidden>⚠ Vehicle close ahead</div>
+ <button class="eyeclose" id="eyeClose">Close camera</button>
+</div>
 <div id="toast"></div>
 <script src="ride.js"></script>
 </body>

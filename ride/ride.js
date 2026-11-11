@@ -224,3 +224,44 @@ matchMedia('(max-width:860px)').addEventListener('change',()=>closeSheet());
 // ---------- boot ----------
 startWatch();
 if('serviceWorker' in navigator){}
+
+// ---------- Traffic Eye: on-device vehicle detection with the camera ----------
+const EYE={on:false,stream:null,model:null,busy:false,timer:null,last:[],lastWarn:0,hist:[]};
+const VCLS={car:{n:'Cars',h:1.5},motorcycle:{n:'Bikes',h:1.2},truck:{n:'Trucks',h:3.2},bus:{n:'Buses',h:3.2},bicycle:{n:'Cycles',h:1.1},person:{n:'People',h:1.7}};
+const VORDER=['car','motorcycle','truck','bus','bicycle','person'];
+const loadScript=src=>new Promise((ok,no)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=()=>no(new Error('load '+src));document.head.append(s)});
+async function eyeModel(){if(EYE.model)return EYE.model;
+ if(!window.tf)await loadScript('https://cdnjs.cloudflare.com/ajax/libs/tensorflow/4.20.0/tf.min.js');
+ if(!window.cocoSsd)await loadScript('https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js');
+ EYE.model=await cocoSsd.load({base:'lite_mobilenet_v2'});return EYE.model}
+async function eyeOpen(){if(EYE.on)return;EYE.on=true;document.body.classList.add('eyeon');$('eye').hidden=false;$('eyeBtn').classList.add('on');renderAround([]);
+ try{EYE.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false});$('cam').srcObject=EYE.stream;await $('cam').play()}
+ catch(e){$('eyeNote').textContent='Camera not available. Allow camera access in your browser settings.';toast('Camera permission is needed for Traffic Eye');return}
+ $('eyeNote').textContent='Loading vehicle detector… (first time needs internet)';
+ try{await eyeModel();$('eyeNote').textContent='Mount the phone facing the road. Counts are estimates from the camera view.';eyeLoop()}
+ catch(e){$('eyeNote').textContent='Could not load the detector. Check your internet connection and try again.'}
+ try{if(!wake)wake=await navigator.wakeLock.request('screen')}catch(_){}}
+function eyeClose(){EYE.on=false;clearTimeout(EYE.timer);document.body.classList.remove('eyeon');$('eye').hidden=true;$('eyeBtn').classList.remove('on');$('warn').hidden=true;
+ if(EYE.stream){EYE.stream.getTracks().forEach(t=>t.stop());EYE.stream=null}const c=$('boxes');c.getContext('2d').clearRect(0,0,c.width,c.height)}
+$('eyeBtn').onclick=()=>EYE.on?eyeClose():eyeOpen();$('eyeClose').onclick=eyeClose;
+async function eyeLoop(){if(!EYE.on)return;const v=$('cam');
+ if(v.readyState>=2&&!EYE.busy){EYE.busy=true;try{const preds=await EYE.model.detect(v,25,0.45);eyeFrame(preds.filter(p=>VCLS[p.class]))}catch(_){}EYE.busy=false}
+ EYE.timer=setTimeout(eyeLoop,document.hidden?1000:180)}
+function eyeFrame(preds){const v=$('cam'),c=$('boxes'),W=c.clientWidth,H=c.clientHeight,dpr=Math.min(2,devicePixelRatio||1);
+ if(c.width!==W*dpr||c.height!==H*dpr){c.width=W*dpr;c.height=H*dpr}const x=c.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,W,H);
+ const vw=v.videoWidth||1,vh=v.videoHeight||1,sc=Math.max(W/vw,H/vh),ox=(W-vw*sc)/2,oy=(H-vh*sc)/2,f=vh/(2*Math.tan(rad(48)/2));
+ const items=preds.map(p=>{const [bx,by,bw,bh]=p.bbox,cx=(bx+bw/2)/vw,d=VCLS[p.class].h*f/Math.max(8,bh),ahead=cx>.3&&cx<.7&&by+bh>vh*.35;return {...p,d,ahead,r:[ox+bx*sc,oy+by*sc,bw*sc,bh*sc]}});
+ const near=items.filter(i=>i.ahead&&i.class!=='person').sort((a,b)=>a.d-b.d)[0];
+ const now=performance.now();EYE.hist.push({t:now,d:near?near.d:null});EYE.hist=EYE.hist.filter(h=>now-h.t<1500);
+ const old=EYE.hist.find(h=>h.d!=null),closing=near&&old&&old.d>near.d*1.25&&now-old.t>500,close=near&&(near.d<6||(near.d<12&&closing));
+ for(const i of items){const hot=near&&i===near&&close,col=hot?'#ff4d4f':i.ahead?'#d6f53f':'rgba(255,255,255,.85)',[rx,ry,rw,rh]=i.r;
+  x.lineWidth=i.ahead?3.5:2;x.strokeStyle=col;x.beginPath();x.roundRect?x.roundRect(rx,ry,rw,rh,8):x.rect(rx,ry,rw,rh);x.stroke();
+  const label=`${VCLS[i.class].n.replace(/s$/,'').replace('Buse','Bus').replace('People','Person')} ~${Math.round(i.d)} m`;x.font='700 13px Urbanist,sans-serif';const tw=x.measureText(label).width+14;
+  x.fillStyle=col;x.beginPath();x.roundRect?x.roundRect(rx,Math.max(0,ry-24),tw,22,11):x.rect(rx,Math.max(0,ry-24),tw,22);x.fill();x.fillStyle='#0b120c';x.fillText(label,rx+7,Math.max(0,ry-24)+15)}
+ renderAround(items,near,close);
+ if(close&&now-EYE.lastWarn>4000){EYE.lastWarn=now;say(`${VCLS[near.class].n.replace(/s$/,'').replace('Buse','Bus')} close ahead`);if(navigator.vibrate)navigator.vibrate([200,100,200])}
+ $('warn').hidden=!close}
+function renderAround(items,near,close){const cnt={};VORDER.forEach(k=>cnt[k]=0);items.forEach(i=>cnt[i.class]++);
+ $('vgrid').innerHTML=VORDER.map(k=>`<div class="${cnt[k]?'has':''}"><b>${cnt[k]}</b><small>${VCLS[k].n}</small></div>`).join('');
+ const a=$('ahead');a.classList.toggle('close',!!close);$('aheadTxt').textContent=near?`${VCLS[near.class].n.replace(/s$/,'').replace('Buse','Bus')} · about ${Math.round(near.d)} m`:'Clear road'}
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&EYE.on&&EYE.stream){}});
