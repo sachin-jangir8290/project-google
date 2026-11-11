@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="assets/logo-dog.svg" type="image/svg+xml">
+<title>PDF Editor – PDFPup</title>
+<meta name="description" content="Free online PDF editor: edit existing text, add text, images, signatures, highlights, shapes and drawings. Runs in your browser.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Dancing+Script:wght@600&family=Great+Vibes&family=Satisfy&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="assets/editor.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+</head>
+<body class="ed m-select">
+<header class="edtop">
+ <a href="index.html" class="logo" title="All tools"><img class="mark dog" src="assets/logo-dog.svg" alt="PDFPup"><span>PDF<b>Pup</b></span></a>
+ <span class="vsep"></span>
+ <div class="edfile"><b id="fname">PDF Editor</b><small id="state">Open a PDF to start editing</small></div>
+ <div class="edact">
+  <button class="ib" id="undo" title="Undo (Ctrl+Z)" disabled></button><button class="ib" id="redo" title="Redo (Ctrl+Y)" disabled></button>
+  <button id="dl" class="pri" disabled><span class="ic-dl"></span><span class="t">Download</span></button>
+ </div>
+</header>
+<nav class="edtools" id="tools"></nav>
+<main class="edmain">
+ <aside id="thumbs"></aside>
+ <section id="pages">
+  <label class="drop" id="drop"><input type="file" id="file" accept=".pdf,application/pdf" hidden><b>Select PDF</b><span>or drop it here — then click any text to edit it</span></label>
+ </section>
+ <aside id="panel"></aside>
+ <div class="zoom" id="zoom" hidden><button id="zout" title="Zoom out">−</button><span id="zl">100%</span><button id="zin" title="Zoom in">+</button><button id="zfit" title="Fit width">⤢</button></div>
+</main>
+
+<div class="modal" id="sigm" hidden><div class="mbox">
+ <h3>Create new signature</h3>
+ <div class="tabs" id="sigtabs"><button data-t="draw" class="on"></button><button data-t="image"></button><button data-t="type"></button></div>
+ <div class="sigarea">
+  <div data-p="draw"><canvas id="sigc" width="640" height="220"></canvas><div class="sigtools"><button class="ib" id="sigundo" title="Undo stroke"></button><button class="ib" id="sigclr" title="Clear"></button></div><p class="ph" id="sigph">Draw your signature here</p></div>
+  <div data-p="image" hidden><label class="sigimg"><img id="sigimg" alt="" hidden><span id="sigimgt">⬆ Upload a signature image</span><input type="file" id="sigf" accept="image/*" hidden></label><label class="chg" id="sigchg" hidden for="sigf">✎ Change Image</label></div>
+  <div data-p="type" hidden><input id="sigt" placeholder="Type your name" maxlength="40" autocomplete="off"><div class="line"></div></div>
+ </div>
+ <div class="sigopts"><div class="sw" id="sigsw"></div><select id="sigw" title="Pen width"><option value="2">2pt</option><option value="3" selected>3pt</option><option value="5">5pt</option></select><select id="sigfont" hidden title="Font"><option>Dancing Script</option><option>Great Vibes</option><option>Caveat</option><option>Satisfy</option></select></div>
+ <div class="mrow"><button id="sigx" class="ghostb">Cancel</button><button id="sigok" class="pri">Create</button></div>
+</div></div>
+<input type="file" id="imgf" accept="image/*" hidden>
+<div id="toast"></div>
+<script src="assets/editor.js"></script>
+</body>
+</html>

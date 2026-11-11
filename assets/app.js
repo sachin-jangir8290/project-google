@@ -116,7 +116,7 @@ const TOOLS={
  pdf2txt:{cat:'Convert from PDF',ic:'🔤',name:'PDF to Text',desc:'Extract all text from a PDF.',accept:PDF,
   run:async([f])=>{const t=(await allText(f)).join('\n');$('out').textContent=t;save(new Blob([t],{type:'text/plain'}),base(f)+'.txt')}},
 
- edit:{cat:'Edit',ic:'✏️',name:'Edit PDF',desc:'Add text anywhere on your PDF pages.',accept:PDF,preview:'text',
+ edit:{cat:'Edit',ic:'✏️',name:'Edit PDF',link:'editor.html',desc:'Full editor: change existing text, add text, images, shapes, highlights & drawings.',accept:PDF,preview:'text',
   opts:'<label>Page: <input id="pp" type="number" value="1" min="1" style="width:70px"></label><label>Text: <input id="tx" value="Your text"></label><label>Size: <input id="sz" type="number" value="16" style="width:60px"></label><label>Color: <input id="col" type="color" value="#000000"></label><br><button type="button" onclick="marks=[];drawPreview()">Undo all</button>',
   run:async([f])=>{if(!marks.length)throw new Error('Click on the page to place text first');const d=await load(f),fn=await d.embedFont(StandardFonts.Helvetica);
    for(const m of marks)d.getPage(m.page-1).drawText(m.text,{x:m.x,y:m.y-m.size*.8,size:m.size,font:fn,color:hex(m.color)});save(await d.save(),base(f)+'-edited.pdf')}},
@@ -215,11 +215,11 @@ const TOOLS={
 // ---------- UI ----------
 let cur,files=[],marks=[],pvDoc=null,pvVp=null,cat='All';
 function grid(){$('tabs').innerHTML=CATS.map(c=>`<button class="${c===cat?'on':''}" onclick="cat='${c}';grid()">${c}</button>`).join('');
- $('grid').innerHTML=Object.entries(TOOLS).filter(([,t])=>cat==='All'||t.cat===cat).map(([k,t],i)=>`<a href="#${k}" class="card c${CATS.indexOf(t.cat)}" style="--d:${i*30}ms" onclick="openTool('${k}');return false"><div class="ic">${svg(k)}</div><h3>${t.name}</h3><p>${t.desc}</p></a>`).join('')}
+ $('grid').innerHTML=Object.entries(TOOLS).filter(([,t])=>cat==='All'||t.cat===cat).map(([k,t],i)=>`<a href="${t.link||'#'+k}" class="card c${CATS.indexOf(t.cat)}" style="--d:${i*30}ms" onclick="openTool('${k}');return false"><div class="ic">${svg(k)}</div><h3>${t.name}</h3><p>${t.desc}</p></a>`).join('')}
 function filterTools(q){q=q.toLowerCase().trim();cat='All';grid();let n=0;document.querySelectorAll('#grid .card').forEach(c=>{const m=!q||c.textContent.toLowerCase().includes(q);c.hidden=!m;n+=m});$('none').hidden=!!n}
 function goCat(c){home();cat=c;grid();$('tools').scrollIntoView({behavior:'smooth'})}
 function home(){$('home').hidden=false;$('tool').hidden=true;window.scrollTo(0,0);history.replaceState(null,'',location.pathname)}
-function openTool(k){cur=TOOLS[k];files=[];marks=[];pvDoc=null;$('home').hidden=true;$('tool').hidden=false;$('t-title').textContent=cur.name;$('t-ic').className='tic c'+CATS.indexOf(cur.cat);$('t-ic').innerHTML=svg(k);$('t-desc').textContent=cur.desc;
+function openTool(k){if(TOOLS[k].link){location.href=TOOLS[k].link;return}cur=TOOLS[k];files=[];marks=[];pvDoc=null;$('home').hidden=true;$('tool').hidden=false;$('t-title').textContent=cur.name;$('t-ic').className='tic c'+CATS.indexOf(cur.cat);$('t-ic').innerHTML=svg(k);$('t-desc').textContent=cur.desc;
  const fi=$('file');fi.accept=cur.accept;fi.multiple=!!cur.multi;cur.capture?fi.setAttribute('capture','environment'):fi.removeAttribute('capture');
  $('drop').querySelector('b').textContent=cur.capture?'Take photo / select images':cur.multi?'Select files':'Select file';
  $('opts').innerHTML=cur.opts||'';$('out').innerHTML='';$('pvw').hidden=true;msg('');render2();location.hash=k;window.scrollTo(0,0);

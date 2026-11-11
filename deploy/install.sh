@@ -36,7 +36,7 @@ fi
 
 echo "▶ 4/6 Copying files to $WEBROOT ..."
 mkdir -p "$WEBROOT"
-cp -r "$SRC"/index.html "$SRC"/images.html "$SRC"/about.html "$SRC"/privacy.html "$SRC"/terms.html "$SRC"/contact.html "$SRC"/ads.txt "$SRC"/assets "$WEBROOT"/
+cp -r "$SRC"/index.html "$SRC"/images.html "$SRC"/editor.html "$SRC"/about.html "$SRC"/privacy.html "$SRC"/terms.html "$SRC"/contact.html "$SRC"/ads.txt "$SRC"/assets "$WEBROOT"/
 chown -R www-data:www-data "$WEBROOT"
 rm -rf "$TMP"
 
