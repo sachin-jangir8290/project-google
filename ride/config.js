@@ -7,5 +7,7 @@
 window.RIDE_CONFIG = window.RIDE_CONFIG || {
   tomtomKey: 'czTfwgZE69WE2a6dOxWA25f96p5XX3Qx',
   geminiKey: '',
+  // CARTO basemaps (Voyager, Night) now require an account key in the tile URL.
+  cartoKey: 'cb1_56ry_1_4b06876d6184ce2e1a2530d0',
   geminiModel: 'gemini-2.5-flash'
 };

@@ -128,7 +128,7 @@ function goTo(h){to={lat:h.ll[0],lng:h.ll[1],name:h.name};store.set('to',to);$('
 let rainL=null;
 async function rainLayer(){if(rainL){map.removeLayer(rainL);rainL=null}if(!OPT.rain)return;
  try{const j=await (await fetch('https://api.rainviewer.com/public/weather-maps.json')).json(),f=j.radar.past[j.radar.past.length-1];
-  rainL=L.tileLayer(`${j.host}${f.path}/256/{z}/{x}/{y}/4/1_1.png`,{opacity:.65,maxNativeZoom:10,maxZoom:19,attribution:'Rain © RainViewer'}).addTo(map);toast('Rain radar on — '+clock(new Date(f.time*1000)))}
+  rainL=L.tileLayer(`${j.host}${f.path}/256/{z}/{x}/{y}/4/1_1.png`,{opacity:.6,maxNativeZoom:7,maxZoom:20,attribution:'Rain © RainViewer'}).addTo(map);toast('Rain radar on — '+clock(new Date(f.time*1000)))}
  catch(_){toast('Rain radar is not available right now')}}
 rainLayer();
 
