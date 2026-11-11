@@ -269,10 +269,13 @@
   <button class="nx" id="novaSet" aria-label="Nova settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
   <button class="nx" id="novaClose" aria-label="Close Nova">×</button></header>
  <div class="nset" id="novaSettings" hidden>
+  <p><b>Google Gemini</b><br><small>Nova uses Gemini for questions the map can't answer, with your live ride data.</small></p>
+  <input id="gemKey" type="password" placeholder="Gemini API key" autocomplete="off" spellcheck="false">
+  <input id="gemModel" placeholder="Model (default gemini-2.5-flash)" autocomplete="off" spellcheck="false">
   <p><b>Connect your Nova AI</b><br><small>Questions Nova can't answer itself go to your API with the live map data. Saved only on this phone.</small></p>
   <input id="novaUrl" placeholder="https://your-nova-ai.example/api/ask" autocomplete="off" spellcheck="false">
   <input id="novaTok" type="password" placeholder="API token (optional)" autocomplete="off" spellcheck="false">
-  <label class="tog"><span><b>Send every question to my Nova AI</b><small>Off: only questions the app can't answer</small></span><input type="checkbox" id="novaAll"><i></i></label>
+  <label class="tog"><span><b>Send every question to the AI</b><small>Off: only questions the map can't answer</small></span><input type="checkbox" id="novaAll"><i></i></label>
   <label class="tog"><span><b>Ride updates</b><small>Nova speaks a short update every 5 km</small></span><input type="checkbox" id="novaUpd" checked><i></i></label>
   <div class="nsrow"><button id="novaSave">Save</button><button id="novaTest" class="ghost">Test connection</button></div>
  </div>
