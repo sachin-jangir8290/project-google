@@ -52,6 +52,7 @@ public class MainActivity extends Activity {
     private GeolocationPermissions.Callback geoCallback;
     private String geoOrigin;
     private PermissionRequest pendingCamera;
+    private volatile boolean pipAllowed = false;
     private TextToSpeech tts;
     private boolean ttsReady = false;
     private SpeechRecognizer recognizer;
@@ -130,6 +131,24 @@ public class MainActivity extends Activity {
         else web.loadUrl(START_URL);
     }
 
+    /** Leaving the app during a ride opens a small floating navigation window (like other map apps). */
+    @Override
+    protected void onUserLeaveHint() {
+        super.onUserLeaveHint();
+        if (pipAllowed && android.os.Build.VERSION.SDK_INT >= 26) {
+            try {
+                enterPictureInPictureMode(new android.app.PictureInPictureParams.Builder()
+                        .setAspectRatio(new android.util.Rational(3, 4)).build());
+            } catch (Exception ignored) { }
+        }
+    }
+
+    @Override
+    public void onPictureInPictureModeChanged(boolean inPip, android.content.res.Configuration cfg) {
+        super.onPictureInPictureModeChanged(inPip, cfg);
+        if (web != null) web.evaluateJavascript("window.onPip&&onPip(" + inPip + ")", null);
+    }
+
     /** Voice for navigation and Nova: Android text-to-speech and speech recognition, called from JavaScript. */
     private class NovaBridge {
         /** Start/stop recording the ride in the background (foreground service with a notification). */
@@ -148,6 +167,9 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface
         public void bgStop() { runOnUiThread(() -> stopService(new Intent(MainActivity.this, RideService.class))); }
+
+        @JavascriptInterface
+        public void setPipAllowed(boolean on) { pipAllowed = on; }
 
         @JavascriptInterface
         public String bgDrain() { return RideService.drain(); }

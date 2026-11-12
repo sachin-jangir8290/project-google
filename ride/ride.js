@@ -15,7 +15,7 @@ const COMPASS=['N','NE','E','SE','S','SW','W','NW'],compass=d=>COMPASS[Math.roun
 const DIRW={N:'north',NE:'northeast',E:'east',SE:'southeast',S:'south',SW:'southwest',W:'west',NW:'northwest'};
 
 // ---------- map ----------
-const map=L.map('map',{zoomControl:false,attributionControl:true,tap:true}).setView(store.get('view')||[28.6139,77.2090],13);
+const map=L.map('map',{rotate:true,touchRotate:true,rotateControl:false,bearing:0,zoomControl:false,attributionControl:true,tap:true}).setView(store.get('view')||[28.6139,77.2090],13);
 const esri=p=>`https://server.arcgisonline.com/ArcGIS/rest/services/${p}/MapServer/tile/{z}/{y}/{x}`;
 // CARTO basemaps need the account key in the tile URL
 const cartoQ=()=>{const k=(window.RIDE_CONFIG&&RIDE_CONFIG.cartoKey)||'';return k?'?key='+encodeURIComponent(k):''};
@@ -108,14 +108,14 @@ function followTo(ll,z){z=z||map.getZoom();const H=map.getSize().y;let top=70,bo
  const nx=$('next');if(nx&&!nx.hidden){const r=nx.getBoundingClientRect();if(r.height)top=r.bottom+10}
  if(isPhone()){const sh=$('sheet'),bn=$('bnav');if(document.body.classList.contains('sheet')&&!document.body.classList.contains('eyeon')){const r=sh.getBoundingClientRect();if(r.height)bot=r.top-10}else if(bn){bot=bn.getBoundingClientRect().top-10}}
  else bot=H-110;
- const ty=riding?top+(bot-top)*0.62:(top+bot)/2,p=map.project(ll,z),c=map.unproject(p.add([0,H/2-ty]),z);map.setView(c,z,{animate:true})}
+ const ty=riding?top+(bot-top)*0.62:(top+bot)/2,p=map.project(ll,z),d=H/2-ty,b=rad(map.getBearing?map.getBearing():0),c=map.unproject(p.add([d*Math.sin(b),d*Math.cos(b)]),z);map.setView(c,z,{animate:true})}
 function riderHeading(){return stats.speed*3.6<6&&typeof devHdg!=='undefined'&&devHdg!=null?devHdg:heading}
 function drawMe(target,instant){target=target||me;const html=`<div class="rider"><span class="pulse"></span><span class="cone"></span><span class="core">${S('<path d="M12 3 6 20l6-4 6 4z"/>')}</span></div>`;
  if(!riderMk){riderMk=L.marker(target,{icon:L.divIcon({className:'',html,iconSize:[46,46],iconAnchor:[23,23]}),zIndexOffset:1000,interactive:false}).addTo(map);accCircle=L.circle(target,{radius:Math.min(myAcc,300),color:'#d6f53f',weight:1,opacity:.45,fillOpacity:.07,interactive:false}).addTo(map);GPS.shown=target}
  const from=GPS.shown||target;cancelAnimationFrame(GPS.anim);const t0=performance.now(),dur=instant||hav(from,target)>300?0:850;
  const step=t=>{const k=dur?Math.min(1,(t-t0)/dur):1,e=1-(1-k)*(1-k),p=[from[0]+(target[0]-from[0])*e,from[1]+(target[1]-from[1])*e];GPS.shown=p;riderMk.setLatLng(p);accCircle.setLatLng(p);if(k<1)GPS.anim=requestAnimationFrame(step)};step(t0);
  accCircle.setRadius(Math.min(myAcc,300));const el=riderMk.getElement(),core=el&&el.querySelector('.core'),cone=el&&el.querySelector('.cone'),h=riderHeading();
- if(core)core.style.transform=`rotate(${h}deg)`;if(cone)cone.style.transform=`rotate(${h}deg)`}
+ const hs=h+(map.getBearing?map.getBearing():0);if(core)core.style.transform=`rotate(${hs}deg)`;if(cone)cone.style.transform=`rotate(${hs}deg)`}
 setInterval(()=>{if(riderMk&&stats.speed*3.6<6)drawMe(GPS.shown,true)},700);
 $('useLoc').onclick=()=>{from=null;$('from').value='';startWatch();if(me){map.setView(me,16);plan()}else toast('Finding your location…')};
 $('recenter').onclick=()=>{follow=true;$('recenter').classList.add('on');if(me)followTo(GPS.shown||me,Math.max(map.getZoom(),16));else{startWatch();toast('Finding your location…')}};

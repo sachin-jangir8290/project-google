@@ -522,3 +522,12 @@ body.eyeon .novaorb,body.placeon .novaorb{display:none}
 .cmme{display:block;width:20px;height:20px;border-radius:50%;background:#3b82f6;border:3px solid #fff;box-shadow:0 0 0 6px rgba(59,130,246,.25)}
 @media (max-width:860px){.camturn{top:calc(112px + var(--st))}.camnav{width:110px;height:110px;left:auto;right:calc(12px + var(--sr));top:calc(196px + var(--st))}body.eyeon .next{display:none}}
 body.eye-rear .camnav,body.eye-rear .camturn,body.eye-rear #arLine{display:none}
+
+/* ===================== compass + floating window ===================== */
+.compassb{position:fixed;z-index:450;right:calc(18px + var(--sr));top:calc(140px + var(--st));display:none}.compassb.show{display:grid}
+.compassb svg{width:26px;height:26px;transition:transform .25s}.compassb.on{border-color:var(--lime)}
+@media (max-width:860px){.compassb{right:calc(12px + var(--sr));top:calc(84px + var(--st))}body.riding .compassb{top:calc(210px + var(--st))}}
+/* floating window: only the map, the next turn and speed */
+body.pip #gps,body.pip #novaOrb,body.pip .top,body.pip .side,body.pip .dock,body.pip .shade,body.pip .nova,body.pip .bubbles,body.pip .place,body.pip #novaBtn,body.pip .sheet,body.pip #sheet,body.pip #bnav,body.pip .bnav,body.pip .ctrls,body.pip .compassb,body.pip .leaflet-control-container,body.pip #toast,body.pip .gpschip,body.pip #gpsChip,body.pip .fab,body.pip .eye,body.pip .radar{display:none!important}
+body.pip .next:not([hidden]){display:flex!important;top:6px!important;left:6px!important;right:6px!important;padding:6px 8px!important;border-radius:12px!important;gap:8px!important}
+body.pip .next b,body.pip .next h3{font-size:18px!important}body.pip .next small,body.pip .next p{font-size:11px!important}
