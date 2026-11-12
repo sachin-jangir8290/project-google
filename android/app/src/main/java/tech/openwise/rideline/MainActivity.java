@@ -132,6 +132,26 @@ public class MainActivity extends Activity {
 
     /** Voice for navigation and Nova: Android text-to-speech and speech recognition, called from JavaScript. */
     private class NovaBridge {
+        /** Start/stop recording the ride in the background (foreground service with a notification). */
+        @JavascriptInterface
+        public void bgStart() {
+            runOnUiThread(() -> {
+                if (android.os.Build.VERSION.SDK_INT >= 33 && !has("android.permission.POST_NOTIFICATIONS"))
+                    requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"}, 77);
+                if (!has(Manifest.permission.ACCESS_FINE_LOCATION)) return;
+                try {
+                    Intent i = new Intent(MainActivity.this, RideService.class);
+                    if (android.os.Build.VERSION.SDK_INT >= 26) startForegroundService(i); else startService(i);
+                } catch (Exception e) { js("onError", "Background tracking could not start: " + e.getMessage()); }
+            });
+        }
+
+        @JavascriptInterface
+        public void bgStop() { runOnUiThread(() -> stopService(new Intent(MainActivity.this, RideService.class))); }
+
+        @JavascriptInterface
+        public String bgDrain() { return RideService.drain(); }
+
         @JavascriptInterface
         public void speak(String text, String lang) {
             if (tts == null || !ttsReady || text == null) return;

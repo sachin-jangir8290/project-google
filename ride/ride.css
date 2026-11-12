@@ -511,3 +511,14 @@ body.eyeon .novaorb,body.placeon .novaorb{display:none}
 .wchart div.today i{background:var(--lime)}.wchart em{font-style:normal;font-size:10px;color:var(--mu)}.wchart small{font-size:11px;color:var(--mu)}
 .convoy{margin:10px 0}.convoy .rcb{width:100%;margin-top:8px}.convoy .rcb .ri{color:var(--lime)}
 .hlist li{position:relative}.gpxb{display:grid;place-items:center;width:34px;height:34px;flex:none;border:1px solid var(--bd);border-radius:10px;background:none;color:var(--lime)}
+
+/* ===================== camera navigation ===================== */
+#arLine{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
+.camturn{position:absolute;z-index:3;left:50%;transform:translateX(-50%);top:calc(80px + var(--st));display:flex;align-items:center;gap:12px;max-width:min(92vw,440px);padding:10px 16px 10px 10px;border-radius:18px;background:rgba(11,18,12,.82);border:1px solid var(--bd);backdrop-filter:blur(12px)}
+.camturn i{display:grid;place-items:center;width:46px;height:46px;border-radius:12px;background:var(--lime);color:#0b120c;flex:none}.camturn i svg{width:30px;height:30px}
+.camturn b{display:block;font-size:24px;line-height:1}.camturn small{display:block;color:var(--mu);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:300px}
+.camnav{position:absolute;z-index:3;left:calc(18px + var(--sl));top:calc(136px + var(--st));width:140px;height:140px;border-radius:50%;overflow:hidden;border:3px solid var(--lime);box-shadow:0 6px 20px rgba(0,0,0,.5)}
+#camMap{width:100%;height:100%}.cmdist{position:absolute;left:0;right:0;bottom:12px;text-align:center;font:700 11px var(--f);color:#0b120c;z-index:500;text-shadow:0 0 4px #fff}
+.cmme{display:block;width:20px;height:20px;border-radius:50%;background:#3b82f6;border:3px solid #fff;box-shadow:0 0 0 6px rgba(59,130,246,.25)}
+@media (max-width:860px){.camturn{top:calc(112px + var(--st))}.camnav{width:110px;height:110px;left:auto;right:calc(12px + var(--sr));top:calc(196px + var(--st))}body.eyeon .next{display:none}}
+body.eye-rear .camnav,body.eye-rear .camturn,body.eye-rear #arLine{display:none}
